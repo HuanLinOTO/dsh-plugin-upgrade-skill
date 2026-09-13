@@ -30,6 +30,7 @@
 %Including images in your LaTeX document requires adding
 %additional package(s)
 \usepackage{graphicx}
+\usepackage{array}
 
 % If the title and author information does not fit in the area allocated, uncomment the following
 %
@@ -46,7 +47,7 @@
 % `npm run generate:paper-benchmark`; never edit the generated files by hand.
 \input{../generated/benchmark-metadata.tex}
 
-\title{Do Migration Skills Actually Help? A Community-Grounded Benchmark for Skill-Guided Framework Migration}
+\title{Beyond Migration Docs: Evaluating Skills for Small Language Models under Limited Budgets}
 
 % Author information can be set in various styles:
 % For several authors from the same institution:
@@ -99,399 +100,432 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-Skills package procedural guidance and reference material for language-model agents, but a gain from supplying a skill does not by itself establish a benefit from its procedural organization.
-We study this distinction in plugin migration across breaking releases of \framework{}, with a planned controlled evaluation of the current 56-task inventory spanning static diagnosis and hands-on repair. The existing \BenchmarkTaskCount{}-task snapshot is retained as historical documentation; the new inventory awaits quality control and freezing.
-The benchmark combines version-specific upgrade knowledge, executable Host contracts, and repository contexts containing misleading comments, pre-existing failures, or stale artifacts.
-Because tasks and skills share source material, we distinguish open-book utility from generalization to incidents excluded from skill development.
-We propose a controlled comparison of no injected material, generic migration guidance, source-matched reference documents, and distilled skills, together with paired clean/trap variants and an audited knowledge holdout.
-The current evidence comprises heterogeneous calibration and development runs; it does not yet establish the incremental value of procedural organization or independent incident transfer.
-We provide the benchmark infrastructure and an evaluation design that separates functional correctness, diagnostic quality, and citation compliance, making these questions testable without assuming that skills help.
+Migration skills combine version-specific knowledge with instructions for using it, but improvements over an unaided agent do not establish an advantage over the underlying documentation.
+We investigate whether migration skills improve small language models' repair correctness relative to source-matched documents under a fixed inference budget.
+Our setting is plugin migration in \framework{}, with community-informed tasks spanning static diagnosis and executable repair.
+The controlled study compares no migration material, generic guidance, source-matched reference documents, and a document-only adapted migration skill.
+The primary comparison holds task-relevant facts, tool access, and resource limits constant while varying how the guidance is organized and presented.
+Functional acceptance tests provide the primary endpoint; diagnostic quality, citation compliance, token usage, and termination status are reported separately.
+Tasks follow a contributor self-check and maintainer review process, distinct from independent validation of model-output grading.
+Historical runs motivate the study but do not yet answer the source-matched comparison.
+This draft specifies a retrospective, single-ecosystem evaluation; independent incident transfer and cross-ecosystem generalization remain future work.
 \end{abstract}
 
 \section{Introduction}
 
-Migrating a plugin across framework releases requires more than replacing API names.
-An agent must identify the relevant version contract, distinguish migration failures from unrelated defects, and verify that the repaired plugin behaves correctly in its target environment.
-Version-sensitive code generation and migration remain active evaluation problems \citep{versicode,codemenv}.
-A practical source of guidance is an agent \emph{skill}: a package of instructions, reference documents, and sometimes executable helpers supplied at inference time.
-Existing benchmarks measure skill utility through paired evaluation and report that effects depend on the task and configuration \citep{skillsbench,swe-skills-bench}.
+Migrating a plugin across a breaking framework release requires identifying the target contract, locating affected code, and verifying the repaired behavior.
+Version-aware code generation and migration benchmarks document the difficulty of adapting to changing interfaces \citep{versicode,codemenv}.
+A migration \emph{skill} packages reference knowledge with guidance on inspection, implementation, and verification.
+Such guidance is attractive for small language models deployed under limited resources: a reusable procedure could help them spend a fixed budget on the right actions.
+Reading and following that procedure also consumes resources that could otherwise be spent inspecting code or testing a repair.
 
-A positive with-skill difference, however, admits several explanations.
-The package may supply missing API facts, organize those facts into an effective procedure, provide useful scripts, or simply induce more computation.
-These effects matter operationally, but they support different scientific claims.
-A generic-advice baseline does not isolate procedural organization from specific information, and a benchmark used repeatedly to refine the skill cannot also serve as an independent test of that refinement.
-These distinctions motivate our evaluation design.
+Existing skill benchmarks report heterogeneous utility, including limited gains and regressions \citep{skillsbench,swe-skills-bench}.
+However, a with-skill versus no-skill comparison bundles several interventions: access to previously unavailable facts, procedural guidance, auxiliary tools, and changes in resource consumption.
+It answers whether the package helps, but not whether organizing the same knowledge as a skill adds value over supplying its source documents.
+That distinction is especially relevant when the agent must finish within a fixed budget.
 
-We study plugin migration in \framework{}, an open-source agent framework.
-The historical snapshot described here contains \BenchmarkTaskCount{} tasks, with version-locked fixtures and automatic graders that combine diagnosis, contract checks, and, where applicable, Host execution.
-Some tasks present contradictory local evidence: obsolete comments recommend an incorrect change, an unrelated test already fails, or a stale artifact obscures the migration defect.
-This setting lets us examine not just access to migration knowledge, but how agents use it when repository evidence conflicts with instructions.
-We do not assume that the target APIs are absent from model training data or that successful startup establishes complete functional correctness.
+We therefore ask one primary research question:
+\begin{quote}
+\textbf{Under a fixed inference budget, do migration skills improve small language models' migration correctness over documents containing the same task-relevant facts?}
+\end{quote}
+The primary contrast is between a document-only migration skill and source-matched documents.
+Two supporting comparisons measure the skill's total utility over no material and the utility of generic migration guidance.
+Resource usage accompanies correctness rather than being inferred from prompt length or model price alone.
 
-We organize the study around three research questions:
+We study these comparisons in \framework{}, an open-source plugin framework with versioned contracts and a host CLI for testing installed plugins.
+Tasks combine static diagnosis with hands-on repair, including cases involving obsolete comments, unrelated failures, and stale artifacts.
+These cases broaden the task conditions; their presence alone does not establish a mechanism for resisting misleading context.
+The present scope is a retrospective, open-book study within one ecosystem, not a claim about unseen incident families or all coding agents.
+
+The work is organized around three components:
 \begin{itemize}
-\item \textbf{RQ1: Incremental utility.} Does a distilled skill improve migration correctness over both no injected guidance and source-matched reference documents?
-\item \textbf{RQ2: Incident transfer.} Does a frozen skill help on incident families excluded from its development, and how does this differ from retrospective knowledge holdout?
-\item \textbf{RQ3: Context conflict.} Does a skill reduce the performance penalty caused by misleading context, and when does following it instead produce an error?
+\item A community-informed migration benchmark with version-pinned fixtures, executable checks, and contributor self-check followed by maintainer review;
+\item A four-condition evaluation design centered on the incremental utility of a skill over source-matched documents for small models;
+\item An analysis separating functional correctness, diagnostic quality, and resource consumption, with explicit treatment of grading errors and development exposure.
 \end{itemize}
-
-The repository already contains benchmark infrastructure, historical model runs, a knowledge-holdout audit, and a semantic-grading pilot.
-The controlled experiments needed to answer all three questions remain incomplete.
-Accordingly, this revision separates existing evidence from the proposed protocol rather than presenting anticipated gains as findings.
-% TODO T1/T2/T3/T15: replace the evidence-status paragraph after controlled evaluation.
-
+The infrastructure and historical experiments are available, while the controlled comparison remains pending.
+We distinguish that evidence status from completed empirical findings throughout the draft.
 
 \begin{figure}[t]
 \centering
-\fbox{\parbox{0.92\columnwidth}{\centering\vspace{2.2cm}
-Placeholder: teaser figure.
-Left: community-reported migration failures.
-Center: verified upgrade cards (bidirectional distillation hub).
-Right top: the skill corpus; right bottom: benchmark tasks.
-\vspace{2.2cm}}}
-\caption{Overview of the benchmark construction. Community migration failures are verified into upgrade cards, which are distilled in two directions: into a skill corpus (inference-time procedural knowledge) and into benchmark tasks (graded evaluation). Shared source material motivates separate open-book and held-out evaluations; it does not establish independence by itself.}
-\label{fig:teaser}
+\small
+\fbox{\parbox{0.90\columnwidth}{\centering
+Version-pinned migration task\\[3pt]
+Same model, tools, and resource limits\\[6pt]
+\begin{tabular}{ll}
+A & No migration material\\
+B & Generic migration guidance\\
+C & Source documents\\
+D & Migration skill + references\\
+\end{tabular}\\[6pt]
+\textbf{Primary contrast: D minus C}\\
+Task-relevant facts matched before evaluation\\[6pt]
+Behavioral correctness $\mid$ Diagnosis $\mid$ Resources
+}}
+\caption{Controlled study design. All conditions share the task and resource limits. C and D require a fact-coverage audit; sharing source files alone does not establish equivalence.}
+\label{fig:design}
 \end{figure}
-
-The current artifacts and proposed evaluation contribute:
-\begin{itemize}
-\item A version-pinned Harbor benchmark snapshot with \BenchmarkTaskCount{} migration tasks, including static diagnosis, executable repair, and misleading-context cases;
-\item A community-informed construction workflow and knowledge-holdout audit, with an explicit requirement to distinguish source overlap from development exposure;
-\item A controlled evaluation design comparing procedural skills with source-matched documents and measuring the interaction between skill provision and misleading context.
-\end{itemize}
-Empirical answers to RQ1--RQ3 are pending; they are not claimed as completed contributions in this draft.
 
 \section{Related Work}
 
-\paragraph{Evaluating agent skills.}
-SkillsBench evaluates curated skills with paired conditions and deterministic verifiers \citep{skillsbench}.
-SWE-Skills-Bench uses execution-based acceptance tests for software-engineering tasks and reports heterogeneous utility, including degradation under version-mismatched guidance \citep{swe-skills-bench}.
-Thus, neither paired evaluation, executable grading, nor negative skill effects is unique to our study.
-Our focus is their application to community-informed migration incidents, with controls for information content, development exposure, and misleading repository context.
+\paragraph{Agent skill evaluation.}
+SkillsBench evaluates curated skills through paired conditions and deterministic verifiers \citep{skillsbench}.
+SWE-Skills-Bench uses execution-based acceptance tests and reports heterogeneous effects, including regressions associated with version-mismatched guidance \citep{swe-skills-bench}.
+SkillLens studies experience generation, skill extraction, and consumption, finding that utility varies across extractors and consumers \citep{skilllens}.
+Our focus is a controlled comparison of migration guidance with the documents supplying its task-relevant facts, rather than skill effectiveness in general.
 
-\paragraph{Version-aware code migration.}
-VersiCode studies version-specific completion and version-aware migration \citep{versicode}; CODEMENV evaluates compatibility, definition changes, and adaptation across environments \citep{codemenv}.
-Our proposed comparison varies the form of externally supplied migration knowledge while holding the task and agent configuration fixed.
-We do not characterize prior migration benchmarks as measuring only memorized knowledge.
+\paragraph{Resource costs and contextual effects.}
+WebDev-Skills-Bench compares matched conditions, including a length-matched irrelevant control and component ablations, and reports both negative effects and token overhead \citep{webdev-skills-bench}.
+Negative skill effects and resource costs are therefore not unique contributions of our study.
+We examine correctness under equal resource limits in a version-pinned migration setting.
+Our main contrast estimates the effect of the audited guidance package; a specific causal claim about prompt length would require an additional length-controlled intervention.
 
-\paragraph{Conflicting contextual instructions.}
-Indirect prompt injection demonstrates how instructions embedded in retrieved data can redirect an LLM-integrated application \citep{indirect-prompt-injection}.
-Our tasks examine an engineering reliability setting: obsolete comments and artifacts can conflict with the intended version contract without constituting a deliberate security attack.
-Whether skills mitigate such conflicts requires a clean/trap intervention, not merely a positive average on tasks containing traps.
+\paragraph{Version-aware migration.}
+VersiCode studies version-specific completion and migration \citep{versicode}, while CODEMENV evaluates compatibility and adaptation across environments \citep{codemenv}.
+Our design varies the organization of externally supplied migration knowledge while holding the task and agent configuration fixed.
+Misleading repository comments are also related to conflicting contextual instructions \citep{indirect-prompt-injection}, although ordinary stale engineering advice need not constitute a deliberate attack.
+A controlled clean/trap study is outside the current primary scope.
 
+\section{Setting and Benchmark}
+\label{sec:construction}
 
-\section{Setting and Skill Corpus}
-
-\subsection{Scenario}
+\subsection{Versioned plugin migration}
 \label{sec:scenario}
 
-\framework{} is an open-source, plugin-based agent framework with a plugin marketplace and a fast release cadence.
-Each minor release carries breaking changes: renamed exports, auth-plane restructurings, build-artifact layout drift, session-state projection changes, and version-routing rules.
-Plugin authors---often not the framework authors---must migrate their plugins across these releases, and the failures they hit are recurring, concrete, and loudly discussed in the community issue tracker.
-Two properties make this setting attractive for measuring skill utility.
-First, version-specific contracts make it possible to identify which facts the supplied materials contain and which can be inferred from the fixture; neither observation establishes what a model has memorized.
-Second, the framework ships a host CLI that can cold-boot a plugin in an isolated profile, giving us a host-side liveness oracle for execution-level grading (\S\ref{sec:grading}).
+\framework{} is a plugin-based framework with a marketplace and frequent releases.
+Relevant changes include renamed exports, authentication boundaries, build-artifact layouts, session representations, and version-routing rules.
+A task specifies the source state, target contract, permitted operations, and expected deliverable.
+Static tasks request diagnosis without source edits; hands-on tasks require a repair that can be checked in a version-pinned environment.
+A host cold boot establishes liveness, while task-specific probes test the required behavior.
+Neither establishes correctness beyond the behaviors exercised.
 
-\subsection{Upgrade cards}
+\subsection{Upgrade knowledge and skill materials}
 \label{sec:cards}
+\label{sec:corpus}
 
-The unit of field knowledge in our setting is the \emph{upgrade card}: a short, structured document contributed by practitioners after a migration incident.
-A card records five fields: \emph{symptom} (the observable failure), \emph{root cause} (the framework change responsible), \emph{fix} (the minimal required change to the plugin), \emph{affected versions} (source and target), and \emph{provenance} (a link to the community incident: issue, discussion, or pull request).
-The intended admission procedure requires reproduction of the symptom against the recorded version pair. A complete per-card provenance and reproduction audit remains required before claiming that every task is independently grounded in a verified incident.
-Cards organize the knowledge from which both the skill corpus and benchmark tasks are derived; their claims must be checked against the target implementation (\S\ref{sec:construction}); Table~\ref{tab:card} shows one card from the corpus.
+Upgrade cards organize practitioner knowledge about a symptom, its cause, a migration action, affected versions, and provenance.
+Cards may support both skill construction and benchmark tasks, so source overlap is expected in an open-book evaluation.
+Each task must still be linked to implementation evidence or explicitly identified as derived or synthetic.
+Table~\ref{tab:card} illustrates the kind of version-sensitive decision captured by the materials.
 
 \begin{table}[t]
 \centering
-\fbox{\parbox{0.92\columnwidth}{\centering\vspace{1.6cm}
-Placeholder: one upgrade card instance (symptom / root cause / fix / affected versions / provenance link).
-\vspace{1.6cm}}}
-\caption{An example upgrade card. Cards record practitioner knowledge for skill distillation and task construction; version-locked implementation evidence is needed to validate their claims.}
+\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.19\columnwidth}>{\raggedright\arraybackslash}p{0.70\columnwidth}}
+\hline
+Field & Example: APIProxy migration\\
+\hline
+Symptom & Calls through the old Host APIProxy surface stop working.\\
+Contract & The relevant APIProxy surface is removed on the recorded release edge.\\
+Action & Locate actual APIProxy call sites and use the corresponding Remote interfaces; do not apply a client-plane recipe indiscriminately to ordinary plugins.\\
+Versions & Source 0.1.1-rc.2 to target 0.1.2-alpha.1; later target edges require their own checks.\\
+Record & Card \texttt{DSH-0.1.2-A1-01}; its version-card set records the upstream comparison and release.\\
+\hline
+\end{tabular}
+\caption{Paraphrased card example from the maintained materials. Its identifier is provenance, not a substitute for a correct diagnosis.}
 \label{tab:card}
 \end{table}
 
-\subsection{Skill corpus}
-\label{sec:corpus}
+The study uses a document-only variant of \emph{plugin-upgrade}, whose guidance connects inspection, version-corridor analysis, implementation, and verification.
+Executable skill helpers and worked-example directories are outside the primary intervention.
+The candidate adaptation removes condensed version summaries from the entry, replaces unavailable helper instructions with document-only procedures, and removes grading-oriented delivery language from shared references.
+All edits are recorded against pinned source bytes; the intervention is adapted guidance, not the unchanged shipped skill.
+Both C and D use the same permitted reference snapshot, including any task-specific pre-example pin.
+This restriction prevents known later examples from silently entering one condition; it does not certify semantic independence or erase prior development feedback.
 
-The repository contains skills for upgrade auditing, migration, release, testing, orchestration, and authoring, together with additional supporting skills. Each experiment must pin the actual supplied package rather than infer its contents from the maintained tree.
-We focus on the flagship \emph{plugin-upgrade} skill: it covers the framework's breaking-change patterns and the evidence-first procedure for diagnosing them (symptom $\rightarrow$ observed behavior $\rightarrow$ minimal fix).
-The maintained tree also contains supporting field examples, so an evaluation cannot assume that the current checkout is answer-free.
-Temporal tasks use the corpus frozen before their cards, and any task with a later answer-bearing example declares a pre-example \texttt{skill\_snapshot\_commit}; the evaluation protocol mounts that snapshot rather than the current tree.
-Such pinning excludes known later examples; semantic overlap and feedback from task development require separate audits.
-
-\section{Benchmark Construction}
-\label{sec:construction}
-
-\subsection{From field failures to benchmark tasks}
+\subsection{Task construction and review}
 \label{sec:pipeline}
+\label{sec:qc}
 
-The intended community construction pipeline has five stages: \emph{collection} (migration failures reported by practitioners), \emph{structuring} (incident $\rightarrow$ upgrade card), \emph{containerized verification} (the symptom must reproduce in a clean fixture), \emph{distillation} (card $\rightarrow$ self-contained task with fixture, prompt, and grader), and \emph{oracle admission} (an oracle solution must achieve full marks before the task is registered).
-Figure~\ref{fig:pipeline} depicts the pipeline.
+The construction workflow turns migration incidents and version changes into cards, fixtures, task instructions, reference solutions, and graders.
+The project's review practice consists of contributor self-check before submission, followed by maintainer review.
+This is development-stage quality control, not independent double-blind annotation of tasks or model outputs.
+Per-task review coverage and the exact versions reviewed must be documented from submission and revision records before reporting a universal coverage rate.
+We do not infer official framework certification from participation by community contributors.
 
-\begin{figure}[t]
-\centering
-\fbox{\parbox{0.94\columnwidth}{\centering\vspace{1.8cm}
-Placeholder: pipeline figure (collection $\rightarrow$ structuring $\rightarrow$ verification $\rightarrow$ distillation $\rightarrow$ oracle admission).
-\vspace{1.8cm}}}
-\caption{The intended card-to-task admission pipeline. Per-task provenance and reproduction records remain to be audited.}
-\label{fig:pipeline}
-\end{figure}
+For the controlled study, task admission additionally requires checks of reference solutions, unchanged fixtures, plausible incorrect solutions, and alternative valid repairs where applicable.
+These checks test whether the grader rewards the intended behavior rather than one particular implementation.
+Automatic validators check registration and execution contracts, but cannot alone establish the validity of a grading criterion.
+Any unresolved admission issue must be resolved or documented before the experimental manifest is frozen.
 
-The frozen inventory is listed in Appendix~\ref{app:tasklist}. The remaining provenance audit must map each task to an incident or explicitly label it as synthetic or derived, record reproduction evidence, and group related tasks by incident family. A task count is not a count of independent incidents.
-
-\subsection{Task taxonomy}
+\subsection{Inventory and development exposure}
 \label{sec:taxonomy}
+\label{sec:teaching-to-test}
 
-The historical snapshot contains \BenchmarkTaskCount{} tasks: \BenchmarkPrefixSCount{} with prefix S, \BenchmarkPrefixMCount{} with prefix M, and \BenchmarkPrefixHCount{} with prefix H.
-These identifiers do not uniquely determine interaction mode: the frozen registry classifies \BenchmarkStaticCount{} tasks as Static and \BenchmarkHandsOnCount{} as Hands-on, including static H-prefixed tasks.
-Table~\ref{tab:tasks} summarizes this inventory.
-Planned annotations cover incident family, version pair, grader type, information present in allowed materials, fixture inferability, and misleading-context family.
-Difficulty and knowledge-coverage labels require independent annotation; they do not identify unobservable model priors.
-
+The existing annotation inventory supplies 56 candidate tasks.
+Membership is carried forward without selecting tasks by historical reward; final admission depends on task quality and a frozen protocol, not the desired direction of the skill effect.
+The living repository may contain additional tasks that are not automatically included.
+For historical reproducibility, Table~\ref{tab:tasks} and Appendix~\ref{app:tasklist} retain the earlier \BenchmarkTaskCount{}-task snapshot.
+These counts must not be substituted for the eventual controlled-study denominator.
 
 \begin{table}[t]
 \centering
 \begin{tabular}{lr}
 \hline
-Inventory dimension & Count \\
+Historical inventory & Count\\
 \hline
-Total tasks & \BenchmarkTaskCount{} \\
-Prefix S / M / H & \BenchmarkPrefixSCount{} / \BenchmarkPrefixMCount{} / \BenchmarkPrefixHCount{} \\
-Static interaction & \BenchmarkStaticCount{} \\
-Hands-on interaction & \BenchmarkHandsOnCount{} \\
+Total tasks & \BenchmarkTaskCount{}\\
+Prefix S / M / H & \BenchmarkPrefixSCount{} / \BenchmarkPrefixMCount{} / \BenchmarkPrefixHCount{}\\
+Static / Hands-on & \BenchmarkStaticCount{} / \BenchmarkHandsOnCount{}\\
 \hline
 \end{tabular}
-\caption{Summary of the frozen \BenchmarkTaskCount{}-task pool. Inventory metadata is generated from the pinned snapshot; incident mapping and annotations remain pending.}
+\caption{Historical snapshot only. Prefixes are task identifiers, not interaction modes or independent incident counts. The controlled study requires a separate frozen manifest.}
 \label{tab:tasks}
 \end{table}
 
-\subsection{Adversarial design}
-\label{sec:adversarial}
+The exposure ledger distinguishes feedback used to refine the skill, grader-development activity, and tasks whose exposure has not been cleared.
+All three can contribute to a transparently labeled retrospective analysis, but none is automatically an unseen test.
+Rerunning a task does not remove its development exposure.
+Incident-family labels should follow shared causal or source evidence, with uncertainty recorded; AI-assisted proposals must not be presented as independent human consensus.
+If grouping remains uncertain, alternative defensible groupings should be included in sensitivity analyses.
 
-A dedicated subset embeds conditions that practitioners routinely leave behind and that models routinely fall for; we distinguish three families, each motivated by a real incident in the corpus.
-(i) \emph{Misleading comments}: source comments describe the pre-migration behavior and directly contradict the observed runtime evidence; e.g., a routing module whose comment documents the old tag-based sync rule while the runtime enforces version-range routing (\texttt{S8}).
-(ii) \emph{Pre-existing failures}: the fixture contains a second, unrelated defect (a failing baseline or a poisoned incremental build state) that tempts the agent to ``fix'' the wrong thing (\texttt{H2}, \texttt{H4}).
-(iii) \emph{Stale artifacts}: incremental build state can obscure the source of a failure (\texttt{H4}); this family can overlap with pre-existing failures. The localization trap \texttt{H7} instead concerns fragile display-text anchoring and must not be mislabeled as a stale artifact.
-These task descriptions motivate candidate strata; final family assignments and clean/trap equivalence checks remain to be audited before the analysis in \S\ref{sec:misleading}.
-
-\subsection{Grading}
+\subsection{Correctness and grading}
 \label{sec:grading}
 
-Historical hands-on graders combine Host execution with static contracts, diagnosis, and task-specific compliance checks.
-Host signals include cold boot, registration, dispatch, and version-locked contract invocation; they test particular behaviors rather than complete plugin correctness.
-Some static graders use card identifiers or lexical patterns, which can favor the condition that receives those identifiers.
-The S1--S4 semantic-judge pilot instead assesses evidence and migration claims, but it has not yet established independent human agreement.
+The primary endpoint is functional acceptance on hands-on tasks: whether the submitted artifact satisfies the task's required behavior at the resource deadline.
+The acceptance criteria and regression checks must be specified before formal evaluation.
+Cold boot, registration, dispatch, and task-specific contract checks establish different properties and are reported accordingly.
+A composite historical reward that includes diagnosis or metadata compliance is not itself a functional pass rate.
 
-The planned primary endpoints separate functional correctness from diagnostic quality and citation compliance.
-Both arms must be scored by the same frozen grader and rubric; historical and revised scores are not interchangeable.
-% TODO T11: complete both-arm regrading and independent grader validation.
+Static diagnosis is a separate, secondary endpoint.
+Semantic rubrics assess the correctness and completeness of the diagnosis; exact card identifiers and citation compliance are reported separately from that core score.
+The repository's semantic graders extend beyond the initial S1--S4 pilot, but automated and contributor review do not yet establish independent agreement on model-output scores.
+Valid paraphrases, answers without card identifiers, keyword-stuffed incorrect answers, and contradictory recommendations are useful grading stress cases.
+Any criterion changed during this validation requires a new frozen rubric before the main comparison.
 
-\subsection{Quality control}
-\label{sec:qc}
+All conditions use the same grader, rubric, and evaluator configuration.
+The solver cannot access grader internals or reference answers.
+Evaluator crashes and malformed grading responses are missing observations with recorded causes, not automatically zero-quality repairs.
+Agent timeouts are termination events: the artifact present at the deadline may still pass functional checks.
 
-Oracle admission and execution-contract validators provide initial checks of task solvability.
-They do not establish that a grader rejects plausible wrong answers or accepts alternative correct repairs.
-The formal admission audit therefore includes unchanged fixtures, defective but bootable repairs, alternative valid solutions, and semantic-grading stress tests.
-Evaluator failures must remain distinct from candidate failures, and the evaluated agent must be isolated from grader internals and reference answers.
-Package metadata such as \texttt{private: true} is not a filesystem access control.
-
-
-\section{Experimental Setup}
+\section{Controlled Evaluation Design}
 \label{sec:setup}
 
-\paragraph{Protocol status.}
-The design below is proposed for a fresh evaluation of all 56 current tasks (17 S-, 14 M-, and 25 H-prefixed tasks), subject to quality control and a new frozen manifest. The generated \BenchmarkTaskCount{}-task inventory and appendix currently document the historical snapshot and will be moved to historical documentation when the new main table is generated. Historical scores will not populate the new main result table. It must be frozen before collecting its test outcomes and does not retroactively describe the heterogeneous historical runs.
+This section specifies the intended study; exact model identities, admitted tasks, resource limits, and repetitions remain to be registered before formal runs.
+Historical runs do not retroactively satisfy this protocol.
 
-\subsection{Paired protocol}
-\label{sec:protocol}
-
-Comparisons are paired within task, model, scaffold, fixture, grader, tool surface, and resource budget.
-Conditions run in fresh isolated environments in a balanced, interleaved order.
-The experiment manifest will distinguish solver access to external documents from provider traffic, installation traffic, and verifier access.
-The authorization convention \texttt{BENCHMARK-AUTH-v1} does not by itself prove network or filesystem isolation.
-Native skill catalogs and memory must be disabled and audited for a literal no-skill condition; otherwise the condition is labeled no-injected-skill.
-
-The primary study allocates one complete agent run to each task--configuration--condition cell: 56 tasks, two configurations, and four conditions yield 448 runs. The primary statistic is the task-average paired reward difference using the first run in each cell. Before formal outcomes are observed, a stratified subset of $K$ tasks will be fixed using task mode, incident family, and trap type; each of its cells receives two additional runs, costing $16K$ extra runs. Subset three-run means and variability are reported separately as stability analyses, without replacing first-run scores in the main table.
-Confidence intervals will resample incident families while preserving condition pairing and within-family task weights. These intervals describe between-family sampling uncertainty and do not fully measure within-task generation variability under the single-run design.
-We will report functional pass rates, per-task deltas, negative effects, coverage, and resource usage.
-Evaluator errors follow a predefined retry and missing-data policy; a valid candidate that fails within its budget remains an observed task outcome.
-% TODO T3/T14: freeze estimand, family assignments, repetitions, and error policy.
-
-\subsection{Models and agent scaffold}
-\label{sec:models}
-
-The initial design targets two complete model--scaffold configurations under all four conditions, with one run per cell in the main evaluation.
-Model, provider, scaffold version, reasoning settings, prompts, and tool permissions will be recorded for each configuration.
-Differences across configurations are descriptive system comparisons; skill effects are estimated only within matched configurations.
-Historical model names do not guarantee identical serving implementations.
-% TODO T14: register exact configurations before formal runs.
-
-\subsection{Conditions}
+\subsection{Four material conditions}
 \label{sec:conditions}
-
-We propose four conditions: A, no injected guidance; B, generic migration guidance; C, source-matched raw cards or reference documents; and D, distilled skill.
-C and D must cover the same permitted facts and use comparable retrieval access, context budgets, and tools.
-Any executable helpers supplied only with D are part of the package intervention and require a separate ablation for a document-only claim.
-D--A measures package utility; D--C addresses procedural organization subject to the remaining content and budget differences.
-D--B alone cannot distinguish specific knowledge from its organization.
-% TODO T1: produce and audit B/C materials; archive all four conditions in Appendix D.
-
-\subsection{Source overlap and development exposure}
-\label{sec:teaching-to-test}
-
-Tasks and skills share upgrade knowledge, making open-book utility a legitimate but limited endpoint.
-A separate development-exposure ledger must identify tasks whose rewards, trajectories, solutions, or graders informed skill refinement.
-Related incident families are grouped before assigning independent test membership; a different task identifier does not ensure independence. Rerunning all 56 tasks does not erase prior development exposure: the full-pool result measures utility on that fixed pool. Independent incident transfer and clean/trap mechanism studies are separately budgeted extensions; until completed, their corresponding claims remain open questions.
-
-The existing temporal-holdout audit identifies knowledge absent from a frozen skill tree.
-This differs from a prospective incident split: a newly written card can describe an older incident, and its task may already have informed later skill development.
-Known answer-bearing examples are excluded by task-specific skill pinning, but path absence alone is not a semantic leakage test.
-The task-specific boundary for \texttt{H11} is distinct from the global holdout freeze; it must not be silently substituted for that freeze.
-
-
-\section{Results}
-\label{sec:results}
-
-No consolidated four-condition result is available in this revision.
-The accompanying evidence ledger classifies historical paired candidates, development runs, incomplete batches, and grader calibration separately.
-For example, the earlier 23-task Flash report records a missing scored H8 skill trial despite its nominal three-run design; the later three-system report combines iterative skill refinement with heterogeneous systems.
-Neither batch is automatically eligible for the proposed independent test.
 
 \begin{table}[t]
 \centering
-\begin{tabular}{ll}
+\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.10\columnwidth}>{\raggedright\arraybackslash}p{0.78\columnwidth}}
 \hline
-Evidence needed & Status \\
+Arm & Supplied migration material\\
 \hline
-A/B/C/D controlled comparison & Pending \\
-Independent incident-family test & Pending \\
-Clean/trap interaction & Pending \\
-Independent grader agreement & Pending \\
+A & No migration-specific material.\\
+B & Framework-agnostic migration guidance without target-specific facts.\\
+C & Source-matched reference cards/documents with a neutral index and a shared factual supplement.\\
+D & Document-only adapted migration guidance and the same references and factual supplement as C.\\
 \hline
 \end{tabular}
-\caption{Evidence status, not an experimental result table. Final outcomes require frozen protocols and comparable trials.}
-\label{tab:main}
+\caption{Material conditions. The primary contrast is D--C; D--A measures overall document-package utility and B--A measures generic-guidance utility.}
+\label{tab:conditions}
 \end{table}
-% TODO T1/T2/T3/T11/T15: replace status table with measured effects and intervals.
 
-\section{Planned Analysis}
+C and D must contain the same task-relevant facts, not merely originate from the same repository.
+The coverage audit maps factual claims in the skill entry to their source passages and checks both directions for omissions or contradictions.
+Facts unique to D must be added to C in nonprocedural form, or the intervention must be revised and its narrower interpretation stated.
+No supplement may be extracted from a task's reference answer.
+The reference cards already contain procedures, so D--C estimates incremental guidance over those documents rather than an absolute contrast between procedural and nonprocedural knowledge.
+
+All arms share a neutral material-discovery convention and access to the same task-authorized tools.
+Native skill catalogs, memories, and automatic discovery of unrelated materials are disabled.
+External links in supplied documents are provenance, not permission to retrieve additional evidence.
+A task must explicitly allow its assigned material package; an instruction stating that no external-to-fixture references exist is incompatible with a supplied-documents condition.
+The prompt and access rules are fixed across arms before execution.
+
+\subsection{Small models and resource limits}
+\label{sec:models}
+\label{sec:protocol}
+
+The study targets two affordable model configurations with complete four-condition coverage.
+Their exact identities, parameter counts when disclosed, serving infrastructure, agent versions, reasoning settings, and resource limits will be reported.
+Low API price alone does not establish small model size; configurations with undisclosed parameter counts must be identified as such.
+Effects are estimated separately within each model--scaffold configuration rather than inferred from cross-model score differences.
+
+For a given task and model, all arms receive the same time limit and any configured token or tool-call limits.
+Limits are calibrated on development tasks before the formal run, including checks that environment setup and tool failures do not dominate the task.
+Equal limits do not require equal realized consumption.
+The study records the actual quantities and their accounting definitions, including cached input and evaluator overhead.
+Model-provider traffic, dependency installation, and verifier traffic are distinguished from solver access to outside information.
+
+Each trial starts in an isolated environment, with conditions interleaved in a balanced order.
+Task, fixture, material, and grader hashes accompany every trial.
+The unattended authorization convention permits the requested task to proceed without another user reply; it is not evidence of network or filesystem isolation.
+Changes to an agent-visible prompt, fixture, or material package require new solver runs rather than regrading old answers as if they came from the new condition.
+
+\subsection{Repetitions and estimand}
+\label{sec:estimand}
+
+For $N$ admitted tasks, two models, four conditions, and $R$ repetitions per cell, the core design requires $8NR$ solver trials.
+Three repetitions are a planning option, not a completed or fixed experiment; the affordable design must be chosen using the development pilot before formal outcomes are observed.
+If only a preselected subset receives extra repetitions, the first run is used consistently for the full-pool estimate and subset stability is reported separately.
+
+Let $y_{tmcr}$ denote functional acceptance for task $t$, model configuration $m$, material condition $c$, and repetition $r$.
+For hands-on task set $\mathcal{H}$, the primary effect is
+\begin{equation}
+\Delta_m^{D-C}=\frac{1}{|\mathcal{H}|}
+\sum_{t\in\mathcal{H}}(\bar y_{tmD}-\bar y_{tmC}),
+\label{eq:primary}
+\end{equation}
+where each bar averages the preregistered repetitions.
+Static diagnostic effects use their own task set and scale; they are not pooled with functional acceptance into a single headline score.
+D--A and B--A are secondary contrasts.
+
+Intervals should preserve condition pairing and account for related incident families.
+Family counts, grouping provenance, unresolved assignments, and sensitivity to reasonable alternative groupings accompany the estimates.
+Repeated trials are not treated as independent incidents.
+The analysis reports complete task and trial denominators, observed regressions, and uncertainty without requiring a positive or significant effect.
+
+\subsection{Failures, missing data, and cost}
+\label{sec:cost}
+
+A solver reaching its budget is evaluated using the artifact available at the deadline and also counted in the termination statistics.
+Infrastructure and evaluator failures follow a bounded, condition-symmetric retry policy fixed before execution; every attempt is retained.
+Unresolved missing scores require coverage reporting and sensitivity analysis on the same task set.
+No condition's aggregate with one denominator is silently compared to another condition's aggregate with a different denominator as a complete paired estimate.
+
+Resource reporting separates input, cached input, output, solver duration, evaluator duration, and parallel batch wall time.
+Whether cached input is included in the reported input total is stated explicitly.
+API-equivalent costs use recorded prices; local inference reports hardware and occupied compute time rather than claiming zero compute cost because no API invoice exists.
+Both successful and failed attempts contribute to resource accounting.
+
+\section{Evidence Status and Planned Reporting}
+\label{sec:results}
+
+The controlled D--C comparison has not yet been completed.
+The repository contains historical coverage runs, paired experiments, and grader-development studies with different task and scoring versions.
+Table~\ref{tab:evidence} records their role without treating them as one leaderboard or substituting them for the proposed main experiment.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.26\columnwidth}>{\raggedright\arraybackslash}p{0.62\columnwidth}}
+\hline
+Evidence & Scope and use\\
+\hline
+Astra coverage & 56 tasks, one with-skill attempt each; no matched no-skill arm. Coverage evidence only.\\
+Qwen paired run & 56 tasks, two conditions, three attempts each; one missing score and historical graders. Retrospective utility evidence.\\
+GLM static runs & 22 static tasks, two conditions, three rounds; mixed grading methods and a same-family solver/judge. Diagnostic evidence only.\\
+Semantic calibration & Grader implementation and selected answer checks; not independent validation of all model outputs.\\
+\hline
+\end{tabular}
+\caption{Historical evidence categories. None supplies the matched source-document arm needed for the primary research question.}
+\label{tab:evidence}
+\end{table}
+
+The formal main table will report each model's A/B/C/D functional acceptance, D--C effect and interval, and effective coverage.
+A separate table will report static diagnostic quality and citation compliance.
+Resource and termination statistics will accompany the correctness results.
+Per-task results and all trial-level scores belong in the supplementary artifacts.
+% TODO: replace this evidence-status section with the frozen controlled results.
+
+\section{Analysis and Interpretation}
 \label{sec:analysis}
 
-\subsection{Temporal holdout}
-\label{sec:holdout}
+\paragraph{Incremental value of guidance.}
+A positive D--C effect would support the utility of the audited skill variant over its source-matched document baseline for the tested configurations and budgets.
+It would not establish that all skill formats or larger models benefit.
+If D and C perform similarly, the interval determines whether the study rules out a practically relevant gain or remains inconclusive; nonsignificance alone is not equivalence.
+If D performs worse, the regression remains a result to explain rather than a reason to redesign the test after observing it.
 
-The existing v1 audit classifies 10 tasks as clean knowledge holdout, 17 as mixed, and 25 as ineligible in its own 52-task candidate inventory.
-These counts describe that audit, not the \BenchmarkTaskCount{}-task historical snapshot or a finalized independent test.
-We will cross-check candidate membership against development exposure and distinguish retrospective knowledge holdout from prospective incident transfer.
-The primary comparison uses absolute within-task differences and confidence intervals.
-A ratio to in-distribution gain is only supplementary, since it is unstable when that gain is near zero and the two sets may differ in difficulty.
+\paragraph{Resource tradeoffs.}
+We will examine correctness alongside realized consumption and termination status.
+A longer reading phase may coincide with poorer completion, but that association does not identify the cause.
+Claims about prompt length, forced reading, or budget exhaustion require additional matched interventions.
+The main study addresses net utility under a fixed deployment budget.
 
-\subsection{Where gains or losses occur}
-\label{sec:where-gains}
-
-We will examine effects by annotated information coverage, fixture inferability, task mode, and incident family.
-Unaided performance is an observed baseline, not proof of training-data membership.
-Annotations will be fixed without consulting test outcomes, and subgroup analyses will be labeled confirmatory or exploratory before testing.
-No monotonic relationship between coverage and skill gain is assumed.
-% TODO T5: replace with annotation agreement and family-aware conditional analysis.
-
-\subsection{Misleading context}
-\label{sec:misleading}
-
-Each selected task will have clean and trap variants with the same repair objective and grader.
-Let $d_t^{\mathrm{trap}}$ and $d_t^{\mathrm{clean}}$ denote D--A reward differences for the two variants of task $t$.
-The interaction $I_t=d_t^{\mathrm{trap}}-d_t^{\mathrm{clean}}$ tests whether skill provision changes the penalty from misleading context.
-We will report the four cell means, a family-aware interval for the interaction, and trace evidence of how the conflict was resolved.
-A positive skill difference on trap tasks alone is insufficient to identify this interaction.
-
-\subsection{Failure taxonomy and over-trust}
+\paragraph{Failure analysis.}
 \label{sec:failures}
+Trace review may identify missing facts, incorrect application, unnecessary edits, ineffective verification, or unresolved causes.
+Each interpretation should cite concrete trace and artifact evidence.
+Over-trust requires observing a rule, contrary evidence, and an incorrect action taken despite that evidence; a negative score difference is insufficient.
+AI-assisted exploratory coding is labeled as such, including prior exposure to outcomes, and does not constitute independent human agreement.
 
-Candidate labels include misapplication, procedure drift, ordinary task failure, and over-trust, with unknown and multiple labels allowed.
-Over-trust requires evidence that the agent accessed a rule, encountered contradictory evidence, continued to follow the rule, and produced an incorrect action.
-A negative reward difference alone does not establish that sequence.
-Two annotators will classify traces independently, recording agreement and denominators separately for all skill-arm failures and paired regressions.
-Evaluator failures are reported outside this behavioral taxonomy.
-
-\subsection{Transfer tasks}
-\label{sec:transfer}
-
-The maintained benchmark includes real-project and contract-level tasks such as \texttt{H9}, \texttt{H11}, and \texttt{H22}.
-They remain within the same framework ecosystem and do not establish cross-ecosystem portability.
-Each task must have an explicit inventory and exposure status before contributing to a transfer estimate; tasks outside the historical snapshot require a separate manifest.
-% TODO T13/T17: report eligible independent project families without merging snapshots.
-
-
-\section{Discussion}
+\section{Discussion and Extensions}
 \label{sec:discussion}
 
-\paragraph{A living benchmark.}
-The benchmark is designed to grow with the framework: each new breaking release produces new community incidents, new verified cards, and new distilled tasks, under the same provenance and oracle-admission invariants.
-The repository provides task-contribution guidance. Future releases should preserve provenance and development-exposure records so that growth does not silently change an evaluation set.
+\paragraph{Review and reproducibility.}
+Contributor self-check and maintainer review provide domain-informed development oversight.
+Their evidential value depends on what was reviewed and which version was accepted.
+They should be complemented by reproducible behavioral tests and targeted inspection of disputed grading decisions, not described as blind model-output annotation.
+The release should preserve task provenance, reviewed revisions, material snapshots, grading packets, and candidate artifacts.
 
-\paragraph{Transferability.}
-\framework{} is the first instance of the methodology, not its boundary.
-Other frameworks may support a similar construction when versioned contracts and reproducible incidents are available. The effort and validity of that extension remain to be measured.
+\paragraph{Independent incident transfer.}
+\label{sec:holdout}
+The existing knowledge-holdout audit concerns facts absent from a frozen skill, which differs from an incident excluded from all development feedback.
+A prospective incident study would need a separately frozen split and exposure audit.
+It is an extension, not a claim supported by the current retrospective task pool.
 
-\paragraph{Hypotheses for skill authors.}
-Evidence-first guidance may help an agent resolve conflicting repository instructions, but this is a hypothesis rather than a validated design principle in the current evidence.
-A matched ablation should remove that procedural guidance while preserving migration facts and resource budgets.
-Likewise, checklist refinement must be evaluated on tasks excluded from the feedback used to construct it.
+\paragraph{Misleading context.}
+\label{sec:misleading}
+A future clean/trap study would keep the repair objective and grader constant while changing the misleading cue.
+The interaction between cue presence and skill provision would test whether guidance specifically reduces the cue's penalty.
+Positive performance on existing trap tasks alone cannot establish that effect.
+
+\paragraph{Other models and ecosystems.}
+\label{sec:transfer}
+Strong-model anchors and other frameworks can extend the study, but are not prerequisites for the bounded small-model question.
+Real-project tasks within \framework{} do not establish cross-ecosystem transfer.
+Any extension requires its own source, material, and verification controls.
 
 \section*{Limitations}
 
-This is an incomplete empirical draft.
-The frozen \BenchmarkTaskCount{}-task inventory covers one framework family and contains related tasks, so its size overstates the number of independent incidents unless family structure is accounted for.
-The main four-condition comparison, independent grader validation, and prospective incident evaluation remain pending.
-Historical runs use heterogeneous protocols and sometimes expose native skills or external resources; some raw records are unavailable for re-audit.
-The target framework and skill materials are public, so absence from model training data cannot be guaranteed.
-Knowledge absence from a frozen skill is not equivalent to absence from model priors or from researcher development feedback.
-Finally, cold boot and narrow contract checks establish only the behaviors they exercise; citation compliance and reference-answer agreement are not substitutes for functional correctness.
+The primary four-condition experiment remains incomplete in this draft.
+The candidate pool belongs to one framework and includes development-exposed and related tasks, limiting independent generalization claims.
+Matching source files does not guarantee matching task-relevant information; differences in guidance length, retrieval behavior, and procedural content in the reference cards remain important interpretation boundaries.
+The document-only intervention does not measure the complete shipped skill with executable helpers and worked examples.
+
+Contributor and maintainer review are development-stage checks, not independent blinded validation of model-output grades.
+AI-assisted annotations, if used, require explicit provenance and cannot be counted as multiple human reviewers.
+Functional tests establish only their covered contracts; static semantic scores remain dependent on rubric validity and evaluator behavior.
+Exact model configurations, statistical grouping, and resource limits must be frozen before formal execution.
+Public framework materials may occur in training data, and no claim of complete training-data exclusion is made.
 
 \section*{Ethics}
 
-The release audit must document source licenses, attribution, and consent where required for incident excerpts and fixtures.
-A complete per-item audit is pending; public availability alone is not treated as permission to redistribute every artifact.
-Formal runs should use disposable environments with declared resource and access boundaries.
-Before publishing trajectories, the release process must remove credentials and personal data while preserving auditable task, configuration, and scoring evidence.
-
-
-% \section*{Acknowledgments} % omitted for review
+The release must document source licenses, attribution, and any required consent for incident excerpts and fixtures.
+Public availability alone is not permission to redistribute every artifact.
+Experiments use disposable environments with explicit access and resource boundaries.
+Published trajectories must be stripped of credentials and personal data while retaining auditable task, configuration, and scoring evidence.
+Review participation is described according to its actual role, without implying organizational endorsement.
 
 \bibliography{custom}
-
 \appendix
 
-\section{Full Task List and Provenance}
+\section{Historical Task Inventory}
 \label{app:tasklist}
-Table~\ref{tab:frozen-task-pool} lists the frozen snapshot \texttt{\BenchmarkSnapshotId{}} at benchmark commit \texttt{\BenchmarkCommitShort{}}. The released snapshot manifest records the full commit hash. Task rows are generated from the pinned git objects.
-
-% Keep the generated inventory unchanged; constrain its presentation locally.
+Table~\ref{tab:frozen-task-pool} lists historical snapshot \texttt{\BenchmarkSnapshotId{}} at benchmark commit \texttt{\BenchmarkCommitShort{}}.
+The manifest records the full commit hash; rows are generated from pinned git objects.
+This is not the final task list for the source-matched study.
 \begingroup
 \def\small{\fontsize{8}{9.5}\selectfont}
 \setlength{\tabcolsep}{1pt}
 \input{../generated/task-pool-table.tex}
 \endgroup
 
-Per-task difficulty, card-dependence, adversarial family, and the task--incident mapping remain future work.
-
-\section{Judge Grading Rubrics}
+\section{Review and Grading Records}
 \label{app:rubrics}
-Placeholder: per-task grader rubrics, checkpoint bands, and error-tolerance rules.
+For each admitted task, the final release must record the source incident or derivation, contributor self-check, maintainer review evidence when available, reviewed task revision, grader revision, and admission checks.
+These fields are not currently a certified complete review-coverage table.
+Model-output validation records must separately identify the evaluated answer, rubric, evaluator, decision, and any adjudication or correction.
 
-\section{Raw Run Data}
-\label{app:raw}
-Placeholder: per-task, per-run, per-condition raw scores and transcripts.
-
-\section{Control Materials and Skill Corpus}
+\section{Materials and Run Artifacts}
 \label{app:generic}
-Pending: full texts, hashes, fact-coverage audit, retrieval rules, and tool boundaries for the four conditions in \S\ref{sec:conditions}.
+\label{app:raw}
+The controlled study requires the full A/B/C/D material texts, hashes, C/D fact-coverage mapping, permitted retrieval paths, and shared tool policy.
+For each solver trial, archive task identity, condition, repetition, model and serving configuration, resource limits, termination status, report or patch, and grader output.
+Preserve missing observations and all infrastructure retries.
+Historical results must retain their original scoring versions and be distinguished from any subsequent regrading.
+% TODO: add permanent artifact locations after material and experiment freeze.
 
-\section{Contribution Statement}
-\label{app:contrib}
-Placeholder: per-author contributions.
-
-\section{Reproduction Guide}
+\section{Reproduction and Contributions}
 \label{app:repro}
-Placeholder: harness setup, oracle replay, validation scripts, and the unattended authorization protocol (\texttt{BENCHMARK-AUTH-v1}) in full.
+\label{app:contrib}
+The final reproduction package must include environment preparation, reference-solution replay, material mounting and isolation checks, scoring, and aggregation commands.
+The unattended authorization protocol must be paired with explicit permission to read the assigned experimental materials.
+Per-author contributions and persistent artifact locations remain to be completed before submission.
 
 \end{document}

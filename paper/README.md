@@ -1,19 +1,19 @@
-# Do Migration Skills Actually Help? A Community-Grounded Benchmark for Skill-Guided Framework Migration
+# Beyond Migration Docs: Evaluating Skills for Small Language Models under Limited Budgets
 
-Review and experiment planning (Chinese): [review](REVIEW-2026-09-08.zh.md) · [paper TODO](GAP-ANALYSIS.zh.md), updated 2026-09-08.
+[中文说明](README.zh.md) · [Revision record](audit/REVISION-2026-09-12.zh.md)
 
-[中文说明](README.zh.md)
+The primary question is whether migration skills improve small-model migration correctness over documents containing the same task-relevant facts under equal resource limits. The main contrast is D−C: document-only skill versus source-matched documents. No-material and generic-guidance conditions provide supporting comparisons. Functional acceptance is primary; static diagnosis, citation compliance, and resource usage are reported separately.
 
-This work-in-progress paper now plans a fresh **56-task × two-configuration × four-condition × one-trial evaluation (448 runs)**; see the [execution plan](../docs/superpowers/plans/2026-09-08-paper-56-task-rerun.md). A subset of K tasks will be fixed before formal outcomes are seen and receive two additional trials in every cell (16K extra runs), reported separately for stability. Generated tables still describe the **23-task historical snapshot** until the new 56-task inventory passes quality control and is frozen. Historical scores will not enter the new main table, and the full pool is not claimed to be independently unseen. Empirical conclusions remain pending.
+The scope is a retrospective, single-ecosystem study with two affordable model configurations. Independent incident transfer, clean/trap mechanisms, and cross-ecosystem evaluation are optional extensions. Task quality control is described as contributor self-check followed by maintainer review, not independent double-blind annotation or official endorsement; per-task coverage still needs a documented audit.
 
-The [experiment and exposure audit](audit/README.zh.md) covers 22 submitted reports and 56 current task definitions. Neither inventory count establishes the size of an independent test set.
+The existing 56-task annotation inventory is a candidate pool. Final N, model identities, budgets, and repetitions remain unfrozen; the full design requires `8NR` solver trials. The old 448-run plan is historical, not the current registered protocol. Generated tables retain the **23-task historical snapshot**, and no completed D−C result is claimed. The current manuscript supersedes the scope and mandatory experiment list in the [older plan](../docs/superpowers/plans/2026-09-08-paper-56-task-rerun.md).
 
 ## Directory structure
 
 - `latex/` — LaTeX source of the report
   - `acl_latex.tex` — main file (title, authors, abstract, full section skeleton; based on the latest official template)
   - `acl.sty` / `acl_natbib.bst` — official ACL style (acl-org/acl-style-files master, 2026-06)
-  - `custom.bib` — bibliography (five versioned arXiv records checked; broader literature review remains pending)
+  - `custom.bib` — bibliography (seven versioned arXiv records; two new entries checked at metadata/abstract level; broader review remains pending)
   - `formatting.md` — official formatting guidelines
   - `acl_lualatex.tex` — XeLaTeX / LuaLaTeX template (unused)
 - `word/`, `archive/` — official Word template and legacy templates (unused, kept as shipped with the style package)
@@ -29,7 +29,7 @@ For [Overleaf](https://www.overleaf.com/), upload `latex/` and `generated/` toge
 
 ## Historical generated benchmark metadata
 
-The existing historical task metadata is **generated, never hand-written**. Switching the main table to the planned 56-task snapshot is a freeze-stage task; the old snapshot stays immutable:
+The existing historical task metadata is **generated, never hand-written**. Switching the main table to the future controlled-study snapshot is a freeze-stage task; the old snapshot stays immutable:
 
 - **Source of truth**: one frozen evaluation snapshot, `benchmark/snapshots/2026-09-01-main-23.json` (currently 23 tasks, 3 runs per task, `per-task-median` aggregation, 2 conditions).
 - The generator (`paper/scripts/generate-benchmark-table.mjs`) reads every task row, registry Type (`Static` / `Hands-on`), and description from **git objects at the snapshot's pinned benchmark commit** — never from the current checkout. Tasks added to the living benchmark after the pinned commit do not change the paper metadata of this experiment.
@@ -51,14 +51,14 @@ npm run check:paper-benchmark   # CI gate: fails if the committed files drift
 
 ## Writing status
 
-- [x] Rewrite abstract, introduction and contributions around three research questions.
+- [x] Rewrite abstract, introduction and contributions around one primary question and supporting analyses.
 - [x] Replace unsupported positive findings with explicit evidence status and planned analyses.
 - [x] Use generated frozen task counts; distinguish prefixes from interaction modes.
 - [x] Create report and development-exposure ledgers (initial audit, not a certified split).
 - [x] Replace five active bibliography stubs with checked records; preserve old leads in `audit/`.
 - [ ] Archive available historical artifacts; complete new protocol hashes, incident grouping and provenance.
 - [ ] Validate graders independently and regrade both conditions consistently.
-- [ ] Freeze and run the 56-task single-trial four-condition study and preselected stability repeats; holdout and clean/trap are extensions.
+- [ ] Freeze the admitted task set, two model configurations, budgets and repetitions; run all four conditions. Holdout and clean/trap remain extensions.
 - [ ] Complete remaining figures, measured results, appendices, and full related-work review.
 
 ## Related resources
