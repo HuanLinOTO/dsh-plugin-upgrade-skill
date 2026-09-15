@@ -5,9 +5,10 @@
 \begin{table*}[t]
 \centering
 \small
-\begin{tabular}{lcccccc}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.17\textwidth}>{\raggedright\arraybackslash}p{0.13\textwidth}>{\raggedright\arraybackslash}p{0.17\textwidth}>{\raggedright\arraybackslash}p{0.09\textwidth}>{\raggedright\arraybackslash}p{0.13\textwidth}>{\raggedright\arraybackslash}p{0.08\textwidth}>{\raggedright\arraybackslash}p{0.11\textwidth}}
 \toprule
-Model ($n$ tasks) & Tasks & no-skill $\rightarrow$ with-skill & Mean paired $\Delta$ & 95\% CI & Wilcoxon $p$ & Protocol \\
+Model ($n$ tasks) & Tasks & no-skill $\rightarrow$ with-skill & Mean paired $\Delta$ & 95\% CI & Signed-rank $p$ & Protocol \\
 \midrule
   gpt-5.6-luna ($n = 18$) & 18-task subset & 69.00 $\rightarrow$ 84.17 & +15.17 & [+3.78, +29.61] & 0.0346 & single-shot \\
 \bottomrule
