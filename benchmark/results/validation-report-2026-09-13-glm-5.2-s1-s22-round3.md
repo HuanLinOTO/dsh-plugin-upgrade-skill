@@ -2,6 +2,8 @@
 
 > Round 3 of the recommended 3-round median protocol. Rounds 1–2: PR #219 (`validation-report-2026-09-13-glm-5.2-s1-s22.md`) and PR #220 (`...-round2.md`). Same solver, model, base commit and scoring setup throughout.
 
+> **Data status (2026-09-15)**: the round-3 artifacts referenced under "Artifacts" below were never committed and are missing; `artifacts/2026-09-13-glm-5.2-s1-s22-round3/aggregate.json` was reconstructed from the per-task table in this report (see that directory's `PROVENANCE.md`). Note an unresolved internal discrepancy: the "Round 3 results" totals below (1895/2005) conflict with this report's own per-task R3 columns (which sum to 1995/2105, one task differing by 100/100). The three-round paired-median figures (2053/2120, +67) are internally consistent and are the citable numbers. Round 1/2 `aggregate.json` files were repaired the same day (S13/S14/S20 restored from `keyword-scores.json`).
+
 ## Setup
 
 Identical to rounds 1–2: solver `zai/glm-5.2` in the dsh web harness, one attempt per task per condition, base commit `a43afbe`, with-skill runs read `skills/plugin-upgrade/SKILL.md` first, S13/S14/S20 scored by official local keyword judges, the other 19 tasks by glm-5.3-flash judge subagents against sealed packets with deterministic aggregation. All 44 solver runs left the benchmark repository clean.
