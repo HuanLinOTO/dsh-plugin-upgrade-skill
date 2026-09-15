@@ -2,7 +2,7 @@
 
 [中文说明](README.zh.md) · [Revision record](audit/REVISION-2026-09-12.zh.md)
 
-**Mainline switched on 2026-09-15.** The primary question is now how the benefit of injecting a migration skill varies with model capability and budget. Completed paired skill-vs-no-skill runs across three capability tiers give the headline result: mid-tier glm-5.3-flash improves significantly (77.8→87.0 points, mean task Δ +9.27pp, 95% CI [+3.95, +16.09], Wilcoxon p=0.0056), the stronger glm-5.2 is ceiling-limited (+3.05pp, p=0.138), and the weak local qwen3.8-27b shows a negative trend (−3.07pp, p=0.177) at +20.6% input tokens and +22 timeouts. A model upgrade dominates the skill effect. The four-condition source-matched design (A/B/C/D, primary contrast D−C) is registered in the repository but was not executed at submission time; it is presented as a design contribution and future work.
+**Mainline switched on 2026-09-15.** The primary question is now how the benefit of injecting a migration skill varies with model capability and budget. Completed paired skill-vs-no-skill runs at five model points spanning the capability range trace an inverted-U: the weakest qwen3.8-27b trends negative (44.7→41.6, −3.07pp, p=0.177) at +20.6% input tokens and +22 timeouts; the middle three all gain (deepseek-v4-flash +10.67pp, gpt-5.6-terra +8.67pp single-shot, glm-5.3-flash +9.27pp with 95% CI [+3.95, +16.09], p=0.0056 — the only result significant on both measures); the strongest glm-5.2 is ceiling-limited (+3.05pp, p=0.138). A model upgrade dominates the skill effect. A sixth pairing (gpt-5.6-luna, +15.17pp) is sensitivity-only because its no-skill arm is contaminated. The four-condition source-matched design (A/B/C/D, primary contrast D−C) is registered in the repository but was not executed at submission time; it is presented as a design contribution and future work.
 
 The scope is a retrospective, single-ecosystem study. Independent incident transfer, clean/trap mechanisms, and cross-ecosystem evaluation are optional extensions. Task quality control is described as contributor self-check followed by maintainer review, not independent double-blind annotation or official endorsement; per-task coverage still needs a documented audit.
 
@@ -54,7 +54,7 @@ npm run check:paper-benchmark   # CI gate: fails if the committed files drift
 The paper's main result table is **generated, never hand-written**:
 
 - **Source of truth**: `benchmark/results/paired-effect-stats.json`, produced by `benchmark/scripts/measure-paired-effect.mjs` (task-level paired deltas, mulberry32 seed 20260907, 10000 bootstrap replicates, two-sided Wilcoxon; input-file SHA-256s embedded).
-- `paper/generated/paired-effect-table.tex` is rendered from that JSON by `paper/scripts/generate-paired-effect-table.mjs` and `\input` into the Results section.
+- `paper/generated/paired-effect-table.tex` (five main model points) and `paper/generated/paired-effect-sensitivity-table.tex` (contaminated luna group) are rendered from that JSON by `paper/scripts/generate-paired-effect-table.mjs` and `\input` into the Results section and the sensitivity appendix.
 
 Regenerate / verify (from the repo root):
 
@@ -72,7 +72,7 @@ npm run test:benchmark-paired      # unit + golden tests for the statistics
 - [x] Use generated frozen task counts; distinguish prefixes from interaction modes.
 - [x] Create report and development-exposure ledgers (initial audit, not a certified split).
 - [x] Replace five active bibliography stubs with checked records; preserve old leads in `audit/`.
-- [x] Switch the mainline to capability/budget-moderated paired empirics (2026-09-15): Results section carries the three-tier paired table from `npm run generate:paper-paired`; the four-condition design is presented as registered, not executed.
+- [x] Switch the mainline to capability/budget-moderated paired empirics (2026-09-15): Results section carries the five-point paired table plus the sensitivity appendix table from `npm run generate:paper-paired`; the four-condition design is presented as registered, not executed.
 - [ ] Archive available historical artifacts; complete new protocol hashes, incident grouping and provenance.
 - [ ] Validate graders independently and regrade both conditions consistently.
 - [ ] Execute the registered four-condition design and the preregistered temporal holdout (future work).
