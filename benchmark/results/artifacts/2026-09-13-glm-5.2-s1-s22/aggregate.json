@@ -28,6 +28,20 @@
     "notes": ""
   },
   {
+    "task": "S13-peer-range-vs-runtime",
+    "method": "official-keyword-judge",
+    "noskill": 100,
+    "skill": 80,
+    "notes": ""
+  },
+  {
+    "task": "S14-link-install-lock-trap",
+    "method": "official-keyword-judge",
+    "noskill": 100,
+    "skill": 80,
+    "notes": ""
+  },
+  {
     "task": "S15-slot-error-boundary-crash",
     "method": "llm-rubric",
     "noskill": 100,
@@ -66,6 +80,13 @@
     "task": "S2-negative-scan",
     "method": "llm-rubric",
     "noskill": 100,
+    "skill": 100,
+    "notes": ""
+  },
+  {
+    "task": "S20-msvc-flock-trap",
+    "method": "official-keyword-judge",
+    "noskill": 80,
     "skill": 100,
     "notes": ""
   },

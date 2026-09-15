@@ -2,6 +2,8 @@
 
 > Round 3 of the recommended 3-round median protocol. Rounds 1–2: PR #219 (`validation-report-2026-09-13-glm-5.2-s1-s22.md`) and PR #220 (`...-round2.md`). Same solver, model, base commit and scoring setup throughout.
 
+> **Data status (resolved 2026-09-15)**: the round-3 raw artifacts (44 solver reports, 38 judge verdicts, both arms) are now committed in this directory; the reconstructed aggregate.json matches them. The previously reported internal discrepancy is resolved: the totals line below (1895/2005) was computed while the two S22 judge verdicts were absent from the judge directory, so S22 (100/100 both arms; verdict files re-obtained from the run author) was silently excluded — the correct round-3 totals are **1995/2105**, matching the per-task table. Three-round paired medians (2053/2120, +67) are unchanged.
+
 ## Setup
 
 Identical to rounds 1–2: solver `zai/glm-5.2` in the dsh web harness, one attempt per task per condition, base commit `a43afbe`, with-skill runs read `skills/plugin-upgrade/SKILL.md` first, S13/S14/S20 scored by official local keyword judges, the other 19 tasks by glm-5.3-flash judge subagents against sealed packets with deterministic aggregation. All 44 solver runs left the benchmark repository clean.
@@ -12,8 +14,8 @@ Round-3 execution note: two API-quota windows interrupted the run. Round 3 start
 
 | Arm | Total | Mean |
 |---|---:|---:|
-| zero-skill | **1895 / 2200** | 86.1% |
-| with-skill | **2005 / 2200** | 91.1% |
+| zero-skill | **1995 / 2200** | 90.7% |
+| with-skill | **2105 / 2200** | 95.7% |
 | skill lift | **+110 (+5.0 pp)** | |
 
 Round 3 is the weakest of the three rounds (R1: 2086/2120, R2: 2084/2120), with scattered single-criterion partials across both arms (e.g. S1 skill host-services, S3 skill slot mechanics, S15 skill attribution caveat) — the profile of a noisier execution window rather than a condition change. Weakest stable zero-skill task remains S4 (50; 63/88 in rounds 1–2), and skill arm repairs it to 100 in all three rounds.
