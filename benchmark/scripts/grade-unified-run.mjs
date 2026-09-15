@@ -36,11 +36,11 @@ function loadSchedule() {
   return JSON.parse(readFileSync(join(runDir, 'schedule.json'), 'utf8'))
 }
 
-function reportPath(task, arm, repeat) {
+function reportPath(runDir, task, arm, repeat) {
   return join(runDir, 'reports', `${arm}`, `r${repeat}`, task, 'report.md')
 }
 
-function scorePath(task, arm, repeat) {
+function scorePath(runDir, task, arm, repeat) {
   return join(runDir, 'scores', `${task}__${arm}__r${repeat}.json`)
 }
 
@@ -71,7 +71,7 @@ function stageAndGrade(task, cellReport) {
 }
 
 function gradeCell(schedule, task, arm, repeat) {
-  const report = reportPath(task, arm, repeat)
+  const report = reportPath(runDir, task, arm, repeat)
   if (!existsSync(report)) throw new Error(`missing report for cell ${task}/${arm}/r${repeat}: ${report}`)
   requireJudgeEnv()
   const { reward, details } = stageAndGrade(task, report)
@@ -89,17 +89,17 @@ function gradeCell(schedule, task, arm, repeat) {
     notes: [],
   }
   mkdirSync(join(runDir, 'scores'), { recursive: true })
-  writeFileSync(scorePath(task, arm, repeat), JSON.stringify(record, null, 2) + '\n')
+  writeFileSync(scorePath(runDir, task, arm, repeat), JSON.stringify(record, null, 2) + '\n')
   return record
 }
 
 // Per workplan §主要分析: average the two repeats per arm per task first, then
 // pair tasks equally. Unscored/error cells are carried as null and excluded
 // from means with an explicit count — never silently turned into zeros.
-export function aggregate(schedule) {
+export function aggregate(schedule, dir = runDir) {
   const perCell = []
   for (const cell of schedule.cells) {
-    const path = scorePath(cell.task, cell.arm, cell.repeat)
+    const path = scorePath(dir, cell.task, cell.arm, cell.repeat)
     perCell.push(existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : { task: cell.task, arm: cell.arm, repeat: cell.repeat, score: null })
   }
   const byTask = new Map()
@@ -155,7 +155,7 @@ if (isMain) {
   } else {
     let done = 0
     for (const cell of schedule.cells) {
-      if (existsSync(scorePath(cell.task, cell.arm, cell.repeat))) {
+      if (existsSync(scorePath(runDir, cell.task, cell.arm, cell.repeat))) {
         done += 1
         continue
       }

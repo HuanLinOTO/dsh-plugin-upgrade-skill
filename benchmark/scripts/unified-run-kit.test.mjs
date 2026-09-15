@@ -3,9 +3,13 @@
 // network. Determinism is asserted against the fixed seeds.
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { inventoryPool, drawSixteen, buildSelectionDoc, SELECTION_SEED, DRAW_SIZE } from './select-unified-sixteen.mjs'
 import { buildSchedule, harborJobConfig, SCHEDULE_SEED } from './generate-unified-run-schedule.mjs'
 import { analyze, HISTORICAL_ROUND1_REF } from './analyze-unified-paired.mjs'
+import { aggregate } from './grade-unified-run.mjs'
 
 test('inventory pool covers exactly the 22 static tasks', () => {
   const pool = inventoryPool()
@@ -108,6 +112,51 @@ test('analysis computes paired estimands with repeat-mean aggregation', () => {
   assert.ok(doc.bootstrap.ci95[0] <= doc.meanDelta && doc.meanDelta <= doc.bootstrap.ci95[1])
   assert.equal(doc.perTask[0].historicalDeltaRef, -25)
   assert.equal(doc.historicalReference.overlappingTasks, 4)
+})
+
+test('aggregate averages repeats per arm and keeps unscored cells visible', () => {
+  const schedule = buildSchedule(SCHEDULE_SEED)
+  // Synthetic two-task slice: patch a copy of the schedule's cells.
+  const slice = {
+    ...schedule,
+    cells: [
+      { task: 'S2-negative-scan', arm: 'no-skill', repeat: 1, job: 'j' },
+      { task: 'S2-negative-scan', arm: 'no-skill', repeat: 2, job: 'j' },
+      { task: 'S2-negative-scan', arm: 'with-skill', repeat: 1, job: 'j' },
+      { task: 'S2-negative-scan', arm: 'with-skill', repeat: 2, job: 'j' },
+      { task: 'S5-negative-naming', arm: 'no-skill', repeat: 1, job: 'j' },
+      { task: 'S5-negative-naming', arm: 'no-skill', repeat: 2, job: 'j' },
+      { task: 'S5-negative-naming', arm: 'with-skill', repeat: 1, job: 'j' },
+      { task: 'S5-negative-naming', arm: 'with-skill', repeat: 2, job: 'j' },
+    ],
+  }
+  const dir = mkdtempSync(join(tmpdir(), 'unified-aggregate-'))
+  try {
+    const writeScore = (task, arm, repeat, score) => {
+      mkdirSync(join(dir, 'scores'), { recursive: true })
+      writeFileSync(join(dir, 'scores', `${task}__${arm}__r${repeat}.json`), JSON.stringify({ task, arm, repeat, score }))
+    }
+    writeScore('S2-negative-scan', 'no-skill', 1, 100)
+    writeScore('S2-negative-scan', 'no-skill', 2, 100)
+    writeScore('S2-negative-scan', 'with-skill', 1, 100)
+    writeScore('S2-negative-scan', 'with-skill', 2, 100)
+    writeScore('S5-negative-naming', 'no-skill', 1, 60)
+    // r2 missing → unscored cell; with-skill r1 infrastructure-error null, r2 90.
+    writeScore('S5-negative-naming', 'with-skill', 1, null)
+    writeScore('S5-negative-naming', 'with-skill', 2, 90)
+    const doc = aggregate(slice, dir)
+    assert.equal(doc.totalCells, 8)
+    assert.equal(doc.gradedCells, 6)
+    const s2 = doc.rows.find((row) => row.task === 'S2-negative-scan')
+    assert.equal(s2.noskill, 100)
+    assert.equal(s2.skill, 100)
+    const s5 = doc.rows.find((row) => row.task === 'S5-negative-naming')
+    assert.equal(s5.noskill, 60) // single scored repeat
+    assert.equal(s5.skill, 90) // null cell excluded from the mean, not zeroed
+    assert.equal(s5.unscoredCells, 2)
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
 })
 
 test('historical reference table matches the committed round-1 totals', () => {
