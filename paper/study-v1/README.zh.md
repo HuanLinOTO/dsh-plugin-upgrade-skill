@@ -10,6 +10,7 @@
 - [兼容性清单](generated/COMPATIBILITY.zh.md)：逐份审查 37 份历史报告；详细来源、哈希与输入比较在 [compatibility.json](generated/compatibility.json)。
 - [候选材料 ZIP](../../output/study-v1-candidates-20260913-document-r2.zip)：包含实际材料、统一后的任务提示和 manifest，可解压检查；尚不是完整实验 runner。
 - [事实覆盖审核底稿](generated/fact-coverage-review.json)：101 个入口正文审核单元，保留机械摘录；实际首轮决策另存 review/entry-review.json，尚未全部通过原子事实审核。
+- [产物完整性与隐私清单](ARTIFACTS.md)：只读生成确定性 SHA-256 manifest（相对路径，无时间/主机/用户名），并扫描凭据与用户目录路径；原始产物留在本地，只提交脱敏摘要。
 
 **候选材料可复现，正式实验未冻结。** 本次没有执行 solver、收费 judge 或真人标注；历史判定 JSON 仅做确定性汇总重放，H25 使用合成对照。旧任务、评分器和原始结果未修改。
 
@@ -46,6 +47,9 @@ python3 paper/scripts/prepare-study-v1.py --materialize /tmp/dsh-study-v1-new-ca
 python3 paper/scripts/prepare-study-v1.py --archive /tmp/dsh-study-v1-new-candidate.zip
 python3 paper/scripts/prepare-study-v1.py --freeze-check
 python3 -m unittest discover -s paper/scripts -p 'test_study_materials.py'
+python3 paper/scripts/manifest-study-artifacts.py manifest paper/study-v1 --out /tmp/study-v1.manifest.json
+python3 paper/scripts/manifest-study-artifacts.py --privacy-check paper/study-v1
+python3 -m unittest discover -s paper/scripts -p 'test_study_artifacts.py'
 ```
 
 不带 --check 时更新 generated 清单。materialize 和 archive 要求新路径，避免覆盖已分发候选版本。材料目录放在仓库外，ZIP 可以保存在 output。freeze-check 当前应失败并列出真实待办，不能靠修改状态字段绕过。
