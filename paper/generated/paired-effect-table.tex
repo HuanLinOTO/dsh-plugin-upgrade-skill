@@ -1,0 +1,19 @@
+% AUTO-GENERATED. DO NOT EDIT.
+% Source: benchmark/results/paired-effect-stats.json
+% Regenerate with: npm run generate:paper-paired
+
+\begin{table*}[t]
+\centering
+\small
+\begin{tabular}{lcccc}
+\toprule
+Model ($n$ tasks) & noskill $\rightarrow$ skill & Mean paired $\Delta$ & 95\% CI & Wilcoxon $p$ \\
+\midrule
+  glm-5.3-flash ($n = 22$) & 77.77 $\rightarrow$ 87.05 & +9.27 & [+3.95, +16.09] & 0.0056 \\
+  glm-5.2 ($n = 22$) & 93.32 $\rightarrow$ 96.36 & +3.05 & [0.00, +7.18] & 0.1378 \\
+  qwen3.8-27b ($n = 56$) & 44.67 $\rightarrow$ 41.60 & $-$3.07 & [$-$8.13, +1.99] & 0.1771 \\
+\bottomrule
+\end{tabular}
+\caption{Task-level paired effect of the plugin-upgrade skill across three completed skill-vs-noskill experiments. Each cell compares the two conditions on a 0--100 scale: for the glm groups, per-task medians of three rounds; for qwen3.8-27b, per-task means of three scored attempts (reward means rescaled by 100). Mean paired $\Delta$ is the mean of per-task skill-minus-noskill deltas; 95\% CIs are percentile intervals from 10,000 task-level paired bootstrap replicates (mulberry32, seed 20260907); $p$ is the two-sided Wilcoxon signed-rank test (zero deltas excluded, tie-corrected normal approximation with continuity correction).}
+\label{tab:paired-effect}
+\end{table*}
