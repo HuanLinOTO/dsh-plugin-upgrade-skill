@@ -266,11 +266,11 @@ class PolicyTests(ArtifactTestCase):
             M.assert_unique_paths(['a.txt', 'a.txt'])
 
     def test_case_collision_on_case_sensitive_filesystem(self):
-        with tempfile.TemporaryDirectory() as directory:
-            probe = Path(directory) / 'CaseProbe'
-            probe.write_bytes(b'x')
-            if (Path(directory) / 'caseprobe').exists():
+        with tempfile.TemporaryDirectory() as probe_dir:
+            (Path(probe_dir) / 'CaseProbe').write_bytes(b'x')
+            if (Path(probe_dir) / 'caseprobe').exists():
                 self.skipTest('filesystem is case-insensitive; case-colliding names are not creatable')
+        with tempfile.TemporaryDirectory() as directory:
             write(directory, 'A.txt', 'upper')
             write(directory, 'a.txt', 'lower')
             entries = manifest_of(directory)['files']
