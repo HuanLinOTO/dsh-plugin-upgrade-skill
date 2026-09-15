@@ -425,7 +425,7 @@ This cross-model comparison is not paired and confounds model identity with capa
 The task S19-phantom-update-stale-host illustrates the discrimination: glm-5.3-flash has a three-round median of 0 on both arms (one round scored 80/80), while glm-5.2 scored 100/100 on both arms in all three rounds, confirming the task separates capability rather than reflecting a rubric defect.
 
 The weakest model also pays the most for the skill.
-Its with-skill arm consumed 20.6\% more input tokens, 6.2\% more solver time, and timed out 22 more times than the no-skill arm (108 vs.\ 86 of 168 trials), so the skill's context and instruction overhead coincides with its negative trend.
+Its with-skill arm consumed 20.6\% more input tokens, 6.2\% more solver time, and timed out 22 more times than the no-skill arm (108 of 168 vs.\ 86 of 167 trials; one no-skill trial was never scored), so the skill's context and instruction overhead coincides with its negative trend.
 For glm-5.3-flash, the round-1 report records with-skill sessions at roughly 2.2 times the session tokens of zero-skill sessions, because skill files enter every turn's context; here the overhead was affordable and the net effect remained positive.
 
 A sixth pairing, gpt-5.6-luna, shows the largest nominal gain ($+15.17$ points) but its no-skill arm is contaminated: two trajectories read the agent's native skill catalog despite no skill being mounted.
@@ -476,7 +476,7 @@ None of these enters the main table; they are consistent context, not evidence.
 
 \paragraph{Resource tradeoffs.}
 The realized consumption moved in the same direction as the effect.
-The weakest model's with-skill arm paid more tokens and timeouts while scoring lower, and the mid-tier model paid roughly 2.2 times the session tokens for its significant gain.
+The weakest model's with-skill arm paid more tokens and timeouts while scoring lower, and the mid-tier model's significant gain came with the roughly 2.2-times session-token overhead recorded in its round-1 report.
 An association between reading overhead and outcomes does not identify the cause: claims about prompt length, forced reading, or budget exhaustion require additional matched interventions.
 The source-matched D--C contrast of the registered design remains the necessary next step for isolating the effect of procedural organization from that of factual content.
 
