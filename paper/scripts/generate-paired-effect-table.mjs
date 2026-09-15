@@ -26,6 +26,18 @@ export const INPUT_PATH = 'benchmark/results/paired-effect-stats.json'
 export const MAIN_OUTPUT_PATH = 'paper/generated/paired-effect-table.tex'
 export const SENSITIVITY_OUTPUT_PATH = 'paper/generated/paired-effect-sensitivity-table.tex'
 
+// Short task-pool identity per group (S6 review revision). Keyed by group
+// label; a group missing here is a hard error so new groups cannot silently
+// ship without a pool description.
+const TASK_POOLS = {
+  'qwen3.8-27b': 'full 56-task pool',
+  'deepseek-v4-flash': '23-task snapshot',
+  'gpt-5.6-terra': '22-task pool, 21 scored',
+  'glm-5.3-flash': 'S1--S22 static',
+  'glm-5.2': 'S1--S22 static',
+  'gpt-5.6-luna': '18-task subset',
+}
+
 function fmt2(value) {
   return value.toFixed(2)
 }
@@ -72,11 +84,13 @@ export function loadStats(repoRoot) {
 }
 
 function renderRow(group, esc) {
+  const pool = TASK_POOLS[group.label]
+  if (pool === undefined) throw new Error(`${INPUT_PATH}: group "${group.label}" has no task-pool label in TASK_POOLS`)
   const label = `${esc(group.label)} ($n = ${group.tasks}$)`
   const pair = `${fmt2(group.meanNoskill)} $\\rightarrow$ ${fmt2(group.meanSkill)}`
   const delta = fmtSigned2(group.meanDelta)
   const ci = `[${fmtSigned2(group.bootstrap.ci95[0])}, ${fmtSigned2(group.bootstrap.ci95[1])}]`
-  return `  ${label} & ${pair} & ${delta} & ${ci} & ${fmtP(group.wilcoxon.pTwoSided)} & ${esc(group.protocol)} \\\\`
+  return `  ${label} & ${pool} & ${pair} & ${delta} & ${ci} & ${fmtP(group.wilcoxon.pTwoSided)} & ${esc(group.protocol)} \\\\`
 }
 
 export function renderPairedEffectTableTex(stats) {
@@ -93,14 +107,16 @@ export function renderPairedEffectTableTex(stats) {
     '\\begin{table*}[t]',
     '\\centering',
     '\\small',
-    '\\begin{tabular}{lccccc}',
+    '\\begin{tabular}{lcccccc}',
     '\\toprule',
-    'Model ($n$ tasks) & noskill $\\rightarrow$ skill & Mean paired $\\Delta$ & 95\\% CI & Wilcoxon $p$ & Protocol \\\\',
+    'Model ($n$ tasks) & Tasks & no-skill $\\rightarrow$ with-skill & Mean paired $\\Delta$ & 95\\% CI & Wilcoxon $p$ & Protocol \\\\',
     '\\midrule',
     rows,
     '\\bottomrule',
     '\\end{tabular}',
-    `\\caption{Task-level paired effect of the plugin-upgrade skill across five model points ordered along the capability axis. Each cell compares the two conditions on a 0--100 scale: per-task medians of three rounds (glm groups) or three runs (deepseek-v4-flash), per-task means of three scored attempts (qwen3.8-27b, reward means rescaled by 100), or single-shot rewards (gpt-5.6-terra; H8 excluded after verifier timeouts on both arms). Mean paired $\\Delta$ is the mean of per-task skill-minus-noskill deltas; 95\\% CIs are percentile intervals from ${replicates} task-level paired bootstrap replicates (${esc(stats.prng)}, seed ${stats.seed}); $p$ is the two-sided Wilcoxon signed-rank test (zero deltas excluded, tie-corrected normal approximation with continuity correction). Task pools and protocols differ across rows, so cross-row comparisons are descriptive.}`,
+    '\\par\\smallskip',
+    '{\\footnotesize Judge identity: in both GLM groups the solver and the grader belong to the same model family --- glm-5.3-flash graded its own runs, and 19 of the 22 glm-5.2 tasks were judged by glm-5.3-flash subagents (the remaining three by official keyword judges) --- so correlated grader bias cannot be excluded (Section~\\ref{sec:related}). glm-5.2\'s CI lower bound touching zero alongside $p = 0.1378$ is a percentile-bootstrap boundary artifact: with 16 of 22 task deltas tied at zero, the lower endpoint of the resampling distribution sits at zero, so the interval brushing zero does not contradict the nonsignificant test.\\par}',
+    `\\caption{Task-level paired effect of the plugin-upgrade skill across five model points, ordered by each group's no-skill baseline (an outcome measure, not an independent capability metric; Section~\\ref{sec:paired}). Each cell compares the two conditions on a 0--100 scale: per-task medians of three rounds (glm groups) or three runs (deepseek-v4-flash), per-task means of three scored attempts (qwen3.8-27b, reward means rescaled by 100), or single-shot rewards (gpt-5.6-terra; H8 excluded after verifier timeouts on both arms). Mean paired $\\Delta$ is the mean of per-task with-skill-minus-no-skill deltas; 95\\% CIs are percentile intervals from ${replicates} task-level paired bootstrap replicates (${esc(stats.prng)}, seed ${stats.seed}); $p$ is the two-sided Wilcoxon signed-rank test (zero deltas excluded, tie-corrected normal approximation with continuity correction). Task pools and protocols differ across rows, so cross-row comparisons are descriptive.}`,
     '\\label{tab:paired-effect}',
     '\\end{table*}',
     '',
@@ -123,14 +139,14 @@ export function renderSensitivityTableTex(stats) {
     '\\begin{table*}[t]',
     '\\centering',
     '\\small',
-    '\\begin{tabular}{lccccc}',
+    '\\begin{tabular}{lcccccc}',
     '\\toprule',
-    'Model ($n$ tasks) & noskill $\\rightarrow$ skill & Mean paired $\\Delta$ & 95\\% CI & Wilcoxon $p$ & Protocol \\\\',
+    'Model ($n$ tasks) & Tasks & no-skill $\\rightarrow$ with-skill & Mean paired $\\Delta$ & 95\\% CI & Wilcoxon $p$ & Protocol \\\\',
     '\\midrule',
     rows,
     '\\bottomrule',
     '\\end{tabular}',
-    `\\caption{Sensitivity analysis, excluded from the main table. ${notes}}`,
+    `\\caption{Sensitivity analysis, excluded from the main table. ${notes}.}`,
     '\\label{tab:paired-effect-sensitivity}',
     '\\end{table*}',
     '',
