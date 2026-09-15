@@ -1258,19 +1258,17 @@ def run_preflight(task_ids=None, arms=ARMS, material_root=None, canary_requested
     errors = validate_plan_shape(plan)
     if errors:
         raise UsageError('malformed material mount plan: ' + '; '.join(errors))
-    if selected_arms != ARMS:
-        trimmed = []
-        for task in plan['tasks']:
-            task = dict(task)
-            task['arms'] = {a: task['arms'][a] for a in selected_arms if a in task['arms']}
-            trimmed.append(task)
-        plan['tasks'] = trimmed
+    # Cross-condition checks always need the full A/B/C/D plan; --arm only narrows
+    # the reported condition list and selects the container canary cell.
+    plan['selectedArms'] = list(selected_arms)
     canary = {'status': 'not-run', 'requested': bool(canary_requested),
               'reason': 'offline plan only; --docker-canary not requested',
               'dockerAvailable': False, 'image': None, 'violations': [], 'observations': {}}
     if canary_requested:
         task0 = plan['tasks'][0]['task'] if plan['tasks'] else PILOT_TASKS[0]
         arm0 = selected_arms[0] if selected_arms else 'A'
+        if arm0 not in cells.get(task0, {}):
+            raise UsageError(f'condition arm has no material cell for {task0}: {arm0}')
         canary = docker_canary(cells, task0, arm0, image=image, runner=runner)
     plan['runtimeCanary'] = canary
     checks = run_checks(plan)
@@ -1346,7 +1344,7 @@ def _parse_tasks(value, pinned):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--task', help='comma-separated task id(s); default: the 4 pilot tasks')
-    parser.add_argument('--arm', help='comma-separated condition arm(s); default: A,B,C,D')
+    parser.add_argument('--arm', help='comma-separated condition arm(s) to report; default: A,B,C,D')
     parser.add_argument('--material-root', help='synthetic <root>/<task>/<arm>/ fixture tree')
     parser.add_argument('--json', action='store_true', help='emit the deterministic JSON report')
     parser.add_argument('--check', action='store_true',

@@ -689,6 +689,15 @@ class StudyIsolationTests(unittest.TestCase):
         with redirect_stderr(io.StringIO()):
             self.assertEqual(tool.main(['--plan-only', '--docker-canary']), 2)
 
+    def test_arm_selection_narrows_report_without_breaking_checks(self):
+        report, _ = tool.run_preflight(task_ids=['T1'], arms=('A',), material_root=self.root)
+        self.assertEqual(report['arms'], ['A'])
+        self.assertTrue(report['ok'], report['summary']['violations'])
+
+    def test_unknown_arm_is_rejected_by_preflight(self):
+        with self.assertRaises(tool.UsageError):
+            tool.run_preflight(task_ids=['T1'], arms=('X',), material_root=self.root)
+
     def test_exit_code_helper(self):
         report, _ = tool.run_preflight(task_ids=['T1'], material_root=self.root)
         self.assertEqual(tool.exit_code_for(report), 0)
