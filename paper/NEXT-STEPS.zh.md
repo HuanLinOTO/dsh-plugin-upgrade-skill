@@ -2,13 +2,13 @@
 
 更新：2026-09-15。用途：作为下一轮开工与交接入口。状态依据当前仓库文件与预演报告；早期审视文档保留历史意见，执行范围以本文和当前 study-v1 协议为准。
 
-**主线已切换为「skill 注入收益取决于模型能力/预算」的成对实证，统计检验已完成**：中档 glm-5.3-flash 显著提升（77.8→87.0，mean 任务 Δ +9.27pp，95% CI [+3.95,+16.09]，Wilcoxon p=0.0056）；glm-5.2 触顶不显著（93.3→96.4，+3.05pp，p=0.138）；qwen3.8-27b 负收益趋势（44.7→41.6，−3.07pp，p=0.177）且输入 token +20.6%、耗时 +6.2%、超时多 22 次；模型跃迁主导 skill 效应。结果由 `npm run measure:benchmark-paired` / `generate:paper-paired` 确定性生成。**四条件 16 格预演与正式跑已从 P0 降级为 future work**；下文 Docker/模型链路的阻塞记录保留，作为该 future work 的前置条件。
+**主线已切换为「skill 注入收益取决于模型能力/预算」的成对实证，统计检验已完成，2026-09-15 扩展为 5 个模型点 + 1 个敏感性组。** 五个点呈倒 U：最弱 qwen3.8-27b 负收益趋势（44.7→41.6，−3.07pp，CI [−8.13,+1.99]，p=0.177，且输入 token +20.6%、耗时 +6.2%、超时多 22 次）；中档三点全部正收益——deepseek-v4-flash +10.67pp（CI [+0.48,+22.11]，Wilcoxon p=0.101）、gpt-5.6-terra +8.67pp（single-shot，p=0.236）、glm-5.3-flash +9.27pp（CI [+3.95,+16.09]，p=0.0056，唯一双口径显著）；最强 glm-5.2 触顶不显著（93.3→96.4，+3.05pp，p=0.138）；模型跃迁主导 skill 效应。敏感性组 gpt-5.6-luna +15.17pp（p=0.035）因 no-skill 臂 H2/H3 原生 skill 污染只进附录。2026-09-01 三批数据已提取为机读 `paired-scores.json` + PROVENANCE.md（见 `benchmark/results/artifacts/2026-09-01-*`）；结果由 `npm run measure:benchmark-paired` / `generate:paper-paired` 确定性生成（主表 5 行 + 附录敏感表）。**四条件 16 格预演与正式跑已从 P0 降级为 future work**；下文 Docker/模型链路的阻塞记录保留，作为该 future work 的前置条件。
 
 ## 1. 论文现在回答什么
 
 核心问题：**迁移 skill 注入的收益如何随模型能力与推理预算变化？**
 
-- 主分析：任务级配对的 skill-vs-noskill 比较，跨三个能力层级（GLM 两组为 S1–S22 静态诊断题三轮中位；qwen 组为 56 题 × 3 次 scored-reward 均值 ×100）。统计协议：mulberry32 seed 20260907、10000 次任务级配对 bootstrap、双侧 Wilcoxon（zeros 排除并报告 nZero）。脚本与 golden 测试在 `benchmark/scripts/measure-paired-effect.mjs`。
+- 主分析：任务级配对的 skill-vs-noskill 比较，5 个模型点 + 1 个敏感性组（GLM 两组为 S1–S22 静态诊断题三轮中位；qwen 组为 56 题 × 3 次 scored-reward 均值 ×100；deepseek 组 23 题 × 3 次中位（terminus-2 + 旧关键词 grader）；terra/luna 为 single-shot）。统计协议：mulberry32 seed 20260907、10000 次任务级配对 bootstrap、双侧 Wilcoxon（zeros 排除并报告 nZero）。脚本与 golden 测试在 `benchmark/scripts/measure-paired-effect.mjs`。
 - 后续问题（同源对照）：在同源参考资料包含相同关键事实的前提下，额外提供迁移流程指导能否提高正确性——由下表四条件设计回答，**已注册、未执行**。
 
 | 条件 | 模型可见材料 |
@@ -28,7 +28,7 @@
 
 | 工作 | 当前交付与证据 | 还不能据此声称什么 |
 | --- | --- | --- |
-| 配对统计与主线切换（2026-09-15） | [measure-paired-effect.mjs](../benchmark/scripts/measure-paired-effect.mjs) + golden 测试、[paired-effect-stats.json](../benchmark/results/paired-effect-stats.json)、[paired-effect-table.tex](generated/paired-effect-table.tex)；三层级数字已进 LaTeX Results 章；`check:paper-paired` 入 CI | qwen 负收益 CI 跨 0 只能称趋势；GLM 组 solver/judge 同家族；glm-5.2 R3 原始 artifacts 缺失（见 [PROVENANCE.md](../benchmark/results/artifacts/2026-09-13-glm-5.2-s1-s22-round3/PROVENANCE.md)） |
+| 配对统计与主线切换（2026-09-15） | [measure-paired-effect.mjs](../benchmark/scripts/measure-paired-effect.mjs) + golden 测试、[paired-effect-stats.json](../benchmark/results/paired-effect-stats.json)、[paired-effect-table.tex](generated/paired-effect-table.tex) 与敏感表；5 模型点倒 U 数字已进 LaTeX Results 章，luna 进附录；2026-09-01 三批已提取机读 `paired-scores.json` + PROVENANCE.md；`check:paper-paired` 入 CI | qwen 负收益 CI 跨 0 只能称趋势；deepseek/terra Wilcoxon 未显著；GLM 组 solver/judge 同家族；glm-5.2 R3 原始 artifacts 已在 PR #228 补交、总分矛盾已解决（S22 verdict 缺失导致旧快照漏计，见 [PROVENANCE.md](../benchmark/results/artifacts/2026-09-13-glm-5.2-s1-s22-round3/PROVENANCE.md)）；luna no-skill 臂污染 |
 | 论文主线调整 | [LaTeX](latex/acl_latex.tex)、[修改记录](audit/REVISION-2026-09-12.zh.md)；已重写问题、设计、证据边界，归档记录显示 8 页 PDF 编译与视觉检查通过 | 仍是待补正式结果的工作稿 |
 | 四组候选材料 | [材料说明](study-v1/README.zh.md)、[manifest](study-v1/generated/material-manifest.json)；56 个候选任务、3 个资料版本、每版四组 | 候选可复现不等于正式冻结；最终 N 未定 |
 | 材料适配与权限修正 | 当前 document-only-r2；共享事实补充、移除 D 入口版本摘要、清理评分导向文字与缺失 helper 指令；统一材料权限，处理闭卷冲突 | 文件相同不等于全部事实已人工认证，普通工具替代仍需运行验证 |

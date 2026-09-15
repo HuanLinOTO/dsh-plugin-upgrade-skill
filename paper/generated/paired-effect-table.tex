@@ -5,15 +5,17 @@
 \begin{table*}[t]
 \centering
 \small
-\begin{tabular}{lcccc}
+\begin{tabular}{lccccc}
 \toprule
-Model ($n$ tasks) & noskill $\rightarrow$ skill & Mean paired $\Delta$ & 95\% CI & Wilcoxon $p$ \\
+Model ($n$ tasks) & noskill $\rightarrow$ skill & Mean paired $\Delta$ & 95\% CI & Wilcoxon $p$ & Protocol \\
 \midrule
-  glm-5.3-flash ($n = 22$) & 77.77 $\rightarrow$ 87.05 & +9.27 & [+3.95, +16.09] & 0.0056 \\
-  glm-5.2 ($n = 22$) & 93.32 $\rightarrow$ 96.36 & +3.05 & [0.00, +7.18] & 0.1378 \\
-  qwen3.8-27b ($n = 56$) & 44.67 $\rightarrow$ 41.60 & $-$3.07 & [$-$8.13, +1.99] & 0.1771 \\
+  qwen3.8-27b ($n = 56$) & 44.67 $\rightarrow$ 41.60 & $-$3.07 & [$-$8.13, +1.99] & 0.1771 & 3 scored, mean \\
+  deepseek-v4-flash ($n = 23$) & 69.96 $\rightarrow$ 80.63 & +10.67 & [+0.48, +22.11] & 0.1007 & 3-run median \\
+  gpt-5.6-terra ($n = 21$) & 71.10 $\rightarrow$ 79.76 & +8.67 & [$-$4.29, +21.62] & 0.2359 & single-shot \\
+  glm-5.3-flash ($n = 22$) & 77.77 $\rightarrow$ 87.05 & +9.27 & [+3.95, +16.09] & 0.0056 & 3-round median \\
+  glm-5.2 ($n = 22$) & 93.32 $\rightarrow$ 96.36 & +3.05 & [0.00, +7.18] & 0.1378 & 3-round median \\
 \bottomrule
 \end{tabular}
-\caption{Task-level paired effect of the plugin-upgrade skill across three completed skill-vs-noskill experiments. Each cell compares the two conditions on a 0--100 scale: for the glm groups, per-task medians of three rounds; for qwen3.8-27b, per-task means of three scored attempts (reward means rescaled by 100). Mean paired $\Delta$ is the mean of per-task skill-minus-noskill deltas; 95\% CIs are percentile intervals from 10,000 task-level paired bootstrap replicates (mulberry32, seed 20260907); $p$ is the two-sided Wilcoxon signed-rank test (zero deltas excluded, tie-corrected normal approximation with continuity correction).}
+\caption{Task-level paired effect of the plugin-upgrade skill across five model points ordered along the capability axis. Each cell compares the two conditions on a 0--100 scale: per-task medians of three rounds (glm groups) or three runs (deepseek-v4-flash), per-task means of three scored attempts (qwen3.8-27b, reward means rescaled by 100), or single-shot rewards (gpt-5.6-terra; H8 excluded after verifier timeouts on both arms). Mean paired $\Delta$ is the mean of per-task skill-minus-noskill deltas; 95\% CIs are percentile intervals from 10,000 task-level paired bootstrap replicates (mulberry32, seed 20260907); $p$ is the two-sided Wilcoxon signed-rank test (zero deltas excluded, tie-corrected normal approximation with continuity correction). Task pools and protocols differ across rows, so cross-row comparisons are descriptive.}
 \label{tab:paired-effect}
 \end{table*}
