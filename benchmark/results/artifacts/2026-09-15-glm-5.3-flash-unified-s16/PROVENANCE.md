@@ -47,6 +47,8 @@ historical outcome, and the same seed always reproduces it.
 | Wall time | solver 128–1040 s/cell; judge 43–294 s/cell; per-cell tokens in execution-log.jsonl |
 | Contamination audit | 64 reports: no sealed-path references, no rubric/grading language detected |
 | Outcome | mean Δ +4.92 (CI95 [0.31, 10.86]), Wilcoxon p=0.080, 8/16 ceiling pairs — see validation report |
+| Per-item judging evidence | judge/<arm>/r<rep>/<task>/{verdict.json,details.json} (criterion verdicts + reasons; input sha256 in details) |
+| Correction log | driver flag-parse bug wrote argv[0] ('apply') into scores' judgeModel; restored to GLM-5.3-Flash with judgeModelNote in every record |
 
 ## Execution protocol
 

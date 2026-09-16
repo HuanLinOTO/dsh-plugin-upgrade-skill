@@ -119,7 +119,7 @@ async function apply({ task, appRoot, verdictPath, logs, scorePath, cell, judgeM
 const isMain = process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href
 if (isMain) {
   const args = process.argv.slice(2)
-  const opt = (name) => args[args.indexOf(name) + 1]
+  const opt = (name) => (args.includes(name) ? args[args.indexOf(name) + 1] : undefined)
   const mode = args[0]
   if (mode === 'stage-grade') {
     const root = stageGradeRoot(opt('--task'), resolve(opt('--report')), resolve(opt('--out')))

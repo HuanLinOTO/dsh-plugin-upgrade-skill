@@ -1,5 +1,5 @@
 {
-  "job_name": "glm-5.2-unified-r1-withskill-b",
+  "job_name": "glm52-unified-r1-withskill-b",
   "jobs_dir": "<local-run>/jobs",
   "n_concurrent_trials": 3,
   "n_attempts": 1,

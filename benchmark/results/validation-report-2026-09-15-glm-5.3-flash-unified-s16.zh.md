@@ -42,16 +42,19 @@
 | S11-mermaid-lazyload-trap | 95 | 90 | −5 | +20 |
 | S18-terminal-sprite-render-trap | 100 | 95 | −5 | −40 |
 
-正增益题对 6、负增益题对 2、零增益（饱和）8。**均值 Δ 由 S1 一题主导（+42.5）**；
-去掉 S1 后均值 Δ 仅 +1.0，说明"中间组增益"在统一评分下主要集中到个别低基线题。
+正增益题对 6、负增益题对 2、零增益（饱和）8。**均值 Δ 高度依赖 S1 一题（+42.5）**：
+去掉 S1 后其余 15 题的平均增益为 **+2.42**（36.25/15），"中间组增益"在统一评分下集中在个别低基线题，
+其余题大多已无提升空间或小幅波动。
 
 ## 三个值得注意的构成变化
 
 1. **S1 反转**：历史上有 skill 反而 −25（卡片误映射），本次 with-skill 两次均 100 分，
    with-skill 会话明确按 skill 的 corridor folding 规则处理了 A1-02↔A2-01；no-skill 均分仅 57.5
    （无材料时折叠规则答错/缺失）。这直接挑战历史"S1 是 skill 退步题"的个案叙事。
-2. **天花板压缩**：8/16 题对双臂满分（S9/S13 等历史 +20 的增益消失），当前模型在该池的 no-skill
-   基线已远高于历史轮（93.8 vs 78.0）。增益萎缩主要是天花板效应，不是 skill 失效。
+2. **天花板压缩是最直观的候选解释，但不是唯一解释**：8/16 题对双臂满分（S9/S13 等历史 +20 的增益消失），
+   当前模型在该池的 no-skill 基线已远高于历史轮（93.8 vs 78.0）。但本跑同时改变了评分体系
+   （统一 report-judge-v2）、judge 与执行方式，"增益萎缩主要由天花板造成"在现有证据下无法与
+   这些因素分离，只能作为待检验解释报告，不能下定论。
 3. **小幅负增益出现**（S11 −5、S18 −5，各为一次重复 90 vs 100）：两次重复内部方差的量级，
    与历史 S18 −40 的深度退步不可同日而语；在 n=2 下不构成稳定退步证据。
 
@@ -65,6 +68,10 @@
 - 评分：密封 report-judge-v2（同一 SYSTEM、judgeInput、fixture 完整性门、prompt-echo 检测、
   确定性 scoreDecisions 聚合），LLM 调用换成 GLM-5.3-Flash 子代理（盲臂，judge 每次只见一份报告）。
   64 格全部 scored，无 judge_error。
+- 判分证据：每格的原始判分输出（含逐条 criterion 的 verdict 与 reason）与确定性聚合明细已提交在
+  `judge/<arm>/r<repeat>/<task>/{verdict.json,details.json}`；judge 输入可由已提交的 packet + report 重建，
+  details.json 含输入 sha256。修正记录：首轮驱动的参数解析缺陷把 judgeModel 字段写成了 argv[0]（'apply'），
+  现已按传输定义恢复为 GLM-5.3-Flash 并在每个评分记录中保留修正说明（judgeModelNote）。
 - 时长：求解格 128–1040 秒（with-skill 显著更长、token 约 2–4 倍，与历史 ~2.2× 一致）；
   评分格 43–294 秒。逐格记录见 [execution-log](artifacts/2026-09-15-glm-5.3-flash-unified-s16/execution-log.jsonl)。
 

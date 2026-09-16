@@ -18,8 +18,8 @@ import { mulberry32 } from './measure-paired-effect.mjs'
 
 export const SCHEDULE_SEED = 20260915
 export const SCHEDULE_SCHEMA = 'unified-run-schedule-v1'
-export const RUN_DIR = 'benchmark/results/artifacts/2026-09-15-glm-5.3-flash-unified-s16'
-export const MODEL_ID = 'glm-5.3-flash'
+export const RUN_DIR = `benchmark/results/artifacts/${process.env.UNIFIED_RUN_DIR ?? '2026-09-15-glm-5.3-flash-unified-s16'}`
+export const MODEL_ID = process.env.UNIFIED_MODEL ?? 'glm-5.3-flash'
 export const ARMS = ['no-skill', 'with-skill']
 export const REPEATS = 2
 export const N_CONCURRENT = 3
@@ -100,8 +100,9 @@ export function harborJobConfig(schedule, jobId, { model = MODEL_ID, env = {} } 
   if (!job) throw new Error(`unknown job ${jobId}`)
   const skillMount = job.arm === 'with-skill' ? [resolve(repoRoot, 'skills/plugin-upgrade')] : []
   const extra = job.arm === 'no-skill' ? [ZERO_SKILL_INSTRUCTION] : []
+  const slug = model.toLowerCase().replace(/[^a-z0-9]/g, '')
   return {
-    job_name: `glm53flash-unified-${jobId}`,
+    job_name: `${slug}-unified-${jobId}`,
     jobs_dir: '<local-run>/jobs',
     n_concurrent_trials: N_CONCURRENT,
     n_attempts: 1,

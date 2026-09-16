@@ -6,7 +6,7 @@
   "reward": 0.9,
   "status": "scored",
   "reason": null,
-  "judgeModel": "apply",
+  "judgeModel": "GLM-5.3-Flash",
   "judgeTransport": "zcode-subagent-v1",
   "gradedAt": "2026-09-16T04:26:26.055Z",
   "protocol": "report-judge-v2",
@@ -50,5 +50,6 @@
       "total": 40
     }
   ],
-  "notes": []
+  "notes": [],
+  "judgeModelNote": "restored: driver bug wrote argv[0] ('apply'); every judge call was a GLM-5.3-Flash subagent per execution-log/PROVENANCE"
 }

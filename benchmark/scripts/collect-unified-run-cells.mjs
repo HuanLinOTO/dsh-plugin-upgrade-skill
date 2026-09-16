@@ -7,7 +7,7 @@
 // byte-identical, hash-pinned skill tree so repository link validation passes.
 // The pristine originals stay under trials/ (uncommitted).
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url))
@@ -35,9 +35,10 @@ function findReport(dir) {
 }
 
 function rewriteSkillLinks(text, reportDest) {
-  const depth = relative(reportDest, repoRoot).split('/').length
-  const ups = '../'.repeat(depth)
-  return text.replace(/\]\(((?:\.\.\/)+skills\/plugin-upgrade\/)/g, `](${ups}skills/plugin-upgrade/`)
+  // path segments below repoRoot include the report file itself; links need one '..' per directory
+  const dirsBelowRoot = reportDest.slice(repoRoot.length).split('/').length - 2
+  const ups = '../'.repeat(dirsBelowRoot)
+  return text.replace(/\]\(((?:\.\.\/)+)skills\/plugin-upgrade\//g, `](${ups}skills/plugin-upgrade/`)
 }
 
 function collectArm(arm) {
@@ -50,7 +51,20 @@ function collectArm(arm) {
       const record = join(cell, 'score-record.json')
       if (existsSync(record)) {
         mkdirSync(join(RUN_DIR, 'scores'), { recursive: true })
-        cpSync(record, join(RUN_DIR, 'scores', `${task}__${arm}__${repeat}.json`))
+        // The driver's flag parser recorded 'apply' (argv[0]) as judgeModel; the
+        // transport identity is documented and restored here (see PROVENANCE).
+        const scored = JSON.parse(readFileSync(record, 'utf8'))
+        scored.judgeModel = 'GLM-5.3-Flash'
+        scored.judgeModelNote = "restored: driver bug wrote argv[0] ('apply'); every judge call was a GLM-5.3-Flash subagent per execution-log/PROVENANCE"
+        writeFileSync(join(RUN_DIR, 'scores', `${task}__${arm}__${repeat}.json`), JSON.stringify(scored, null, 2) + '\n')
+      }
+      const judgeDir = join(RUN_DIR, 'judge', arm, repeat, task)
+      for (const [srcName, dstName] of [['verdict.json', 'verdict.json'], [join('grade-logs', 'details.json'), 'details.json']]) {
+        const src = join(cell, srcName)
+        if (existsSync(src) && !existsSync(join(judgeDir, dstName))) {
+          mkdirSync(judgeDir, { recursive: true })
+          cpSync(src, join(judgeDir, dstName))
+        }
       }
       const dest = join(RUN_DIR, 'reports', arm, repeat, task, 'report.md')
       if (existsSync(dest)) continue

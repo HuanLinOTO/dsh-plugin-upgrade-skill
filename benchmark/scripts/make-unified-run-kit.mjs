@@ -43,7 +43,6 @@ writeFileSync(join(dstDir, 'schedule.json'), JSON.stringify(schedule, null, 2) +
 
 for (const jobId of schedule.jobOrder) {
   const config = harborJobConfig(schedule, jobId, { model })
-  config.job_name = `${model.toLowerCase()}-unified-${jobId}`
   writeFileSync(join(dstDir, 'harbor', `${jobId}.config.json`), JSON.stringify(config, null, 2) + '\n')
 }
 
