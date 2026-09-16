@@ -1,7 +1,7 @@
 # S13 · Peer Range vs Runtime Reality — Report
 
 **Task**: `@deepseek-harness-tui/dsh-tui@0.1.0-beta.4` installed on dsh `0.1.2-alpha.5`; npm install clean, plugin crashes at startup. Read-only diagnosis.
-**Mode**: A · inspect (read-only), per plugin-upgrade skill. Evidence: fixture pack (npm output, crash stack, plugin source excerpt, dsh changelog excerpt) plus the skill's corridor card [v0.1.2-alpha.4](../../../../../dsh-plugin-upgrade-skill/skills/plugin-upgrade/references/v0.1.2-alpha.4.md).
+**Mode**: A · inspect (read-only), per plugin-upgrade skill. Evidence: fixture pack (npm output, crash stack, plugin source excerpt, dsh changelog excerpt) plus the skill's corridor card v0.1.2-alpha.4
 
 ## 1. The exact runtime incompatibility
 
