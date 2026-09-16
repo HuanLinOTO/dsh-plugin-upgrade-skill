@@ -93,5 +93,5 @@
 | 逐格评分（64） | `scores/<task>__<arm>__r<repeat>.json` |
 | 聚合/配对分析 | `aggregate.json` / `paired-analysis.json` / `paired-analysis.md` |
 | 执行日志 | `execution-log.jsonl` |
-| 预演（不进统计） | `trials/pilot/`（S4 +10→100 判定细节见 scores） |
+| 预演（不进统计） | 本机 `~/.cache/dsh-unified-run-evidence/2026-09-15-glm-5.3-flash-unified-s16-trials/pilot/`（不进仓库；S4 87.5→100、S10 100/100） |
 | 分析脚本 | `benchmark/scripts/analyze-unified-paired.mjs` 等 `*unified*` 系列 |

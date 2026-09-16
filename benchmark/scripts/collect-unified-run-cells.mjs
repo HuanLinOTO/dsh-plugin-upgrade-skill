@@ -1,13 +1,20 @@
 // Collects finished unified-run cells from the trials tree into the repo
 // artifact layout: scores/<task>__<arm>__r<repeat>.json and
 // reports/<arm>/r<repeat>/<task>/report.md. Idempotent; prints a coverage table.
-import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs'
-import { join } from 'node:path'
+//
+// Committed report copies get one disclosed transformation: workspace-relative
+// skill links (../../skills/plugin-upgrade/...) are re-pointed at the repo's
+// byte-identical, hash-pinned skill tree so repository link validation passes.
+// The pristine originals stay under trials/ (uncommitted).
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url))
 const RUN_DIR = join(repoRoot, 'benchmark/results/artifacts', process.env.UNIFIED_RUN_DIR ?? '2026-09-15-glm-5.3-flash-unified-s16')
-const TRIALS = join(RUN_DIR, 'trials')
+const TRIALS = process.env.UNIFIED_TRIALS_DIR
+  ? resolve(process.env.UNIFIED_TRIALS_DIR)
+  : join(RUN_DIR, 'trials')
 
 function findReport(dir) {
   const agentOutput = join(dir, 'agent-output')
@@ -27,6 +34,12 @@ function findReport(dir) {
   return walk(agentOutput)
 }
 
+function rewriteSkillLinks(text, reportDest) {
+  const depth = relative(reportDest, repoRoot).split('/').length
+  const ups = '../'.repeat(depth)
+  return text.replace(/\]\(((?:\.\.\/)+skills\/plugin-upgrade\/)/g, `](${ups}skills/plugin-upgrade/`)
+}
+
 function collectArm(arm) {
   const armDir = join(TRIALS, arm)
   if (!existsSync(armDir)) return
@@ -39,10 +52,12 @@ function collectArm(arm) {
         mkdirSync(join(RUN_DIR, 'scores'), { recursive: true })
         cpSync(record, join(RUN_DIR, 'scores', `${task}__${arm}__${repeat}.json`))
       }
+      const dest = join(RUN_DIR, 'reports', arm, repeat, task, 'report.md')
+      if (existsSync(dest)) continue
       const report = findReport(join(cell, 'workspace')) ?? findReport(cell)
-      if (report && !existsSync(join(RUN_DIR, 'reports', arm, repeat, task, 'report.md'))) {
-        mkdirSync(join(RUN_DIR, 'reports', arm, repeat, task), { recursive: true })
-        cpSync(report, join(RUN_DIR, 'reports', arm, repeat, task, 'report.md'))
+      if (report) {
+        mkdirSync(join(dest, '..'), { recursive: true })
+        writeFileSync(dest, rewriteSkillLinks(readFileSync(report, 'utf8'), dest))
       }
     }
   }
