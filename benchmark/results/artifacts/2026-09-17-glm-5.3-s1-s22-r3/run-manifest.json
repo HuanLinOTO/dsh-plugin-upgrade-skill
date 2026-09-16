@@ -1,0 +1,10 @@
+﻿{
+  "harness": "dsh web in-session subagents",
+  "round": "3",
+  "model": "zai/glm-5.3",
+  "base_commit": "e0a9ff5",
+  "solver_completed": "2026-09-17",
+  "judge_model": "zai/glm-5.3",
+  "judge_deviation": "R3 judged by glm-5.3 (same model as solver) instead of the glm-5.3-flash judge used in R1/R2 -- session did not switch models; same-family/same-model bias risk is higher and cross-round judge consistency is broken; flagged for review",
+  "notes": "R3 of 3-round median; 44/44 reports; concurrency 1 (serial) for most of the run, raised to 4 after the second quota window opened; one 5-hour quota interruption during skill S6 -- silent failure relaunched once per protocol (disclosed); aggregate: noskill 2013 / skill 2158 / lift +145 (+6.6pp); S17 noskill = 0 via triggered cap contradictory-operational-advice (clamp); 3-round per-task medians: noskill 2135.5 / skill 2170 / lift +34.5 (+1.6pp)"
+}
