@@ -46,3 +46,6 @@ jobs/
 
 # unified-run local credential configs
 benchmark/results/artifacts/2026-09-15-glm-5.3-flash-unified-s16/harbor/*.config.local.json
+
+# raw solver workspaces (evidence stays local; reports/scores are committed)
+benchmark/results/artifacts/2026-09-15-glm-5.3-flash-unified-s16/trials/
