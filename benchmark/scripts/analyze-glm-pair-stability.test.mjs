@@ -3,9 +3,10 @@
 // Golden check: the retrospective A1/A2 analysis reproduces its committed
 // numbers from the committed inputs. No network, no Docker.
 import test from 'node:test'
+import { readFileSync } from 'node:fs'
 import assert from 'node:assert/strict'
 import { fileURLToPath } from 'node:url'
-import { analyze, STATS_PATH, OUTPUT_PATH } from './analyze-glm-pair-stability.mjs'
+import { analyze, spearman, TABLE_PATH, OUTPUT_PATH } from './analyze-glm-pair-stability.mjs'
 
 const repoRoot = fileURLToPath(new URL('../../', import.meta.url))
 
@@ -46,3 +47,17 @@ test('renderMarkdown: table mentions the mean and CI', () => {
 
 import { renderMarkdown } from './analyze-glm-pair-stability.mjs'
 function renderMarkdownSafe(r) { return renderMarkdown(r) }
+
+test('Spearman uses original observation order and midpoint ranks for ties', () => {
+  assert.ok(Math.abs(spearman([30, 10, 20], [1, 2, 3]) + 0.5) < 1e-12)
+  assert.ok(Math.abs(spearman([1, 1, 2], [1, 2, 3]) - Math.sqrt(3) / 2) < 1e-12)
+  assert.equal(spearman([1, 1, 1], [1, 2, 3]), null)
+  assert.throws(() => spearman([1, 2], [1]), /equal-length/)
+})
+
+test('all committed outputs reproduce exactly from the hashed inputs', () => {
+  const r = analyze(repoRoot)
+  assert.equal(JSON.stringify(r, null, 2) + '\n', readFileSync(repoRoot + OUTPUT_PATH, 'utf8'))
+  assert.equal(renderMarkdown(r), readFileSync(repoRoot + TABLE_PATH, 'utf8'))
+  assert.ok(!renderMarkdown(r).includes('[object Object]'))
+})

@@ -33,12 +33,23 @@ const ROUND_DIRS = {
 
 const sha256 = p => createHash('sha256').update(readFileSync(p)).digest('hex')
 const loadJson = p => JSON.parse(readFileSync(p, 'utf8'))
-const round4 = v => Math.round(v * 10000) / 10000
+const round4 = v => v === null ? null : Math.round(v * 10000) / 10000
 
 export function spearman(xs, ys) {
-  const rank = v => {
-    const order = [...v].map((x, i) => [x, i]).sort((a, b) => a[0] - b[0])
-    return order.map(([, i]) => i + 1)
+  if (xs.length !== ys.length || xs.length < 2 || [...xs, ...ys].some(v => !Number.isFinite(v))) {
+    throw new Error('Spearman requires equal-length finite arrays with at least two observations')
+  }
+  const rank = values => {
+    const order = values.map((value, index) => ({ value, index })).sort((a, b) => a.value - b.value)
+    const ranks = new Array(values.length)
+    for (let i = 0; i < order.length;) {
+      let end = i + 1
+      while (end < order.length && order[end].value === order[i].value) end++
+      const midrank = (i + 1 + end) / 2
+      for (let j = i; j < end; j++) ranks[order[j].index] = midrank
+      i = end
+    }
+    return ranks
   }
   const rx = rank(xs)
   const ry = rank(ys)
@@ -46,7 +57,7 @@ export function spearman(xs, ys) {
   const my = mean(ry)
   const num = rx.reduce((acc, x, i) => acc + (x - mx) * (ry[i] - my), 0)
   const den = Math.sqrt(rx.reduce((acc, x) => acc + (x - mx) ** 2, 0)) * Math.sqrt(ry.reduce((acc, y) => acc + (y - my) ** 2, 0))
-  return den === 0 ? 0 : num / den
+  return den === 0 ? null : num / den
 }
 
 export function analyze(repoRoot) {
@@ -58,6 +69,7 @@ export function analyze(repoRoot) {
 
   const flashByTask = new Map(flash.perTask.map(e => [e.task, e]))
   const strongByTask = new Map(strong.perTask.map(e => [e.task, e]))
+  if (flashByTask.size !== flash.perTask.length || strongByTask.size !== strong.perTask.length || flashByTask.size !== strongByTask.size || [...flashByTask.keys()].some(t => !strongByTask.has(t))) throw new Error('GLM task sets must match without duplicates')
   const tasks = flash.perTask.map(e => e.task).filter(t => strongByTask.has(t)).sort()
 
   const a1Deltas = tasks.map(t => flashByTask.get(t).delta - strongByTask.get(t).delta)
@@ -85,7 +97,8 @@ export function analyze(repoRoot) {
       const byTask = new Map(agg.map(e => [e.task, e]))
       const deltas = tasks.filter(t => byTask.has(t)).map(t => byTask.get(t).skill - byTask.get(t).noskill)
       const round = /round\d+$/.test(dir) ? dir.match(/round\d+$/)[0] : 'r1'
-      return { round, meanDelta: round4(mean(deltas)), n: deltas.length }
+      if (deltas.length !== tasks.length || byTask.size !== tasks.length) throw new Error('round task set differs: ' + dir)
+      return { round, dir, meanDelta: round4(mean(deltas)), n: deltas.length }
     })
   }
 
@@ -95,13 +108,14 @@ export function analyze(repoRoot) {
     const gains = g.perTask.map(e => e.delta)
     baselineGain[label] = { spearmanBaselineVsGain: round4(spearman(baselines, gains)) }
   }
+  const repeatAggregation = Object.fromEntries(Object.entries(perRound).map(([model, rounds]) => [model, { meanOverRepeats: round4(mean(rounds.map(r => r.meanDelta))), medianPerArmOverRepeats: byLabel[model].meanDelta }]))
   const meanVsMedian = {
     'glm-5.3-flash': { mean: flash.meanDelta, median: flash.medianDelta },
     'glm-5.2': { mean: strong.meanDelta, median: strong.medianDelta }
   }
   const zeroHandling = {
-    flashNZero: flash.nZero ?? flash.wilcoxon.n,
-    strongNZero: strong.nZero ?? strong.wilcoxon.n,
+    flashNZero: flash.perTask.filter(e => e.delta === 0).length,
+    strongNZero: strong.perTask.filter(e => e.delta === 0).length,
     note: 'wilcoxon n excludes zero deltas; zeros reported as nZero'
   }
 
@@ -130,6 +144,7 @@ export function analyze(repoRoot) {
     a2: {
       perRoundMeanDelta: perRound,
       meanVsMedianAggregation: meanVsMedian,
+      repeatAggregationSensitivity: repeatAggregation,
       baselineVsGainSpearman: baselineGain,
       zeroHandling
     }
@@ -158,11 +173,16 @@ export function renderMarkdown(result) {
   md.push('- full-sample mean d_t = ' + result.a1.meanD)
   md.push('- leave-one-out range: ' + result.a1.leaveOneOut.min.meanD + ' (without ' + result.a1.leaveOneOut.min.task + ') to ' + result.a1.leaveOneOut.max.meanD + ' (without ' + result.a1.leaveOneOut.max.task + ')')
   md.push('')
+  md.push('## Repeated-run aggregation sensitivity (task-equally weighted lift)')
+  md.push('')
+  for (const [model, v] of Object.entries(result.a2.repeatAggregationSensitivity)) md.push('- ' + model + ': mean over repeats = ' + v.meanOverRepeats + '; median per arm over repeats = ' + v.medianPerArmOverRepeats)
+  md.push('')
   md.push('## baseline vs gain (Spearman rho)')
   md.push('')
-  for (const [model, v] of Object.entries(result.a2.baselineVsGainSpearman)) md.push('- ' + model + ': rho = ' + v)
+  for (const [model, v] of Object.entries(result.a2.baselineVsGainSpearman)) md.push('- ' + model + ': rho = ' + (v.spearmanBaselineVsGain ?? 'undefined (constant ranks)'))
   md.push('')
-  md.push('> Retrospective exploratory analysis; mean bootstrap and Wilcoxon are not independent confirmations; task-bootstrap correlation limits per workplan section 2.')
+  md.push('> Retrospective exploratory comparison of historical configurations, not an independent capability ordering or a controlled model effect. Materials, budgets and grading differ between the two GLM runs. Solver and semantic judge share a model family; independent scoring review remains outstanding.')
+  md.push('> Mean bootstrap and Wilcoxon are not independent confirmations. Resampling assumes independent tasks; shared source events may make these intervals too narrow. Baseline–gain correlation also contains mathematical coupling (gain subtracts baseline), so it does not establish a ceiling mechanism. This analysis addresses the historical right-side contrast only, not the complete inverted-U shape.')
   return md.join('\n') + '\n'
 }
 

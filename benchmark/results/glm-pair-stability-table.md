@@ -1,6 +1,6 @@
-## A1 · 两组 GLM 的逐题增益差（d_t = lift_flash − lift_strong，3 轮中位）
+## A1 per-task lift difference (d_t = lift_flash − lift_strong, 3-round medians)
 
-| 任务 | 5.3f lift | 5.2 lift | d_t |
+| task | 5.3-flash lift | 5.2 lift | d_t |
 |---|---:|---:|---:|
 | S1-static-scan | 0 | 0 | 0 |
 | S10-paste-rename-and-version-chip | 0 | 0 | 0 |
@@ -24,23 +24,29 @@
 | S7-unpublished-cohort | 0 | 0 | 0 |
 | S8-release-routing-trap | 10 | 0 | 10 |
 | S9-composer-coordinate-trap | 0 | 0 | 0 |
-| **mean** | | | **6.23** |
-| **95% CI (task bootstrap)** | | | **[2.590909090909091, 10.045454545454545]** |
-| **Wilcoxon** | | | **p=0.007988586882083037, n=12（零差 10 项单列）** |
+| **mean** | | | **6.2273** |
+| **95% CI (task bootstrap)** | | | **[2.5909, 10.0455]** |
+| **Wilcoxon** | | | **p=0.007988586882083037, n=12** |
 
-## A2 · 逐轮 mean delta（glm-5.2 R1–R3 / glm-5.3-flash R1–R3）
+## A2 per-round mean delta
 
-- **glm-5.3-flash**: r1=6.32, round2=8.82, round3=9.82
-- **glm-5.2**: r1=1.55, round2=1.64, round3=5
+- **glm-5.3-flash**: r1=6.3182, round2=8.8182, round3=9.8182
+- **glm-5.2**: r1=1.5455, round2=1.6364, round3=5
 
-## Leave-one-task-out（A1 mean d_t）
+## leave-one-task-out (A1 mean d_t)
 
-- 全样本 mean d_t = 6.23
-- 剔除单项后范围: 5.33（剔除 S4-legacy-client-imports）～ 7（剔除 S11-mermaid-lazyload-trap）
+- full-sample mean d_t = 6.2273
+- leave-one-out range: 5.3333 (without S4-legacy-client-imports) to 7 (without S11-mermaid-lazyload-trap)
 
-## 基线 vs 增益（Spearman）
+## Repeated-run aggregation sensitivity (task-equally weighted lift)
 
-- glm-5.3-flash: ρ = -0.696
-- glm-5.2: ρ = -0.274
+- glm-5.3-flash: mean over repeats = 8.3182; median per arm over repeats = 9.2727
+- glm-5.2: mean over repeats = 2.7273; median per arm over repeats = 3.0455
 
-> 回顾性探索分析；均值 bootstrap 与 Wilcoxon 非独立确认；任务 bootstrap 的相关性限制见 workplan §2。
+## baseline vs gain (Spearman rho)
+
+- glm-5.3-flash: rho = -0.742
+- glm-5.2: rho = -0.6406
+
+> Retrospective exploratory comparison of historical configurations, not an independent capability ordering or a controlled model effect. Materials, budgets and grading differ between the two GLM runs. Solver and semantic judge share a model family; independent scoring review remains outstanding.
+> Mean bootstrap and Wilcoxon are not independent confirmations. Resampling assumes independent tasks; shared source events may make these intervals too narrow. Baseline–gain correlation also contains mathematical coupling (gain subtracts baseline), so it does not establish a ceiling mechanism. This analysis addresses the historical right-side contrast only, not the complete inverted-U shape.

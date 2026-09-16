@@ -11,7 +11,7 @@
   "inputs": [
     {
       "path": "benchmark/results/paired-effect-stats.json",
-      "sha256": "920c24ad854e1fe63a49d5200ba00b9c6a3ba3ba7adc86b6fe6481f159860cc2"
+      "sha256": "a57ea74301f7b7306aef88042edf12b2b33f64f549b426767b3010934ed4bbb9"
     },
     {
       "path": "benchmark/results/artifacts/2026-09-11-glm-5.3-flash-s1-s22/aggregate.json",
@@ -44,8 +44,8 @@
     "meanD": 6.2273,
     "medianD": 0,
     "bootstrapCi95": [
-      2.590909090909091,
-      10.045454545454545
+      2.5909,
+      10.0455
     ],
     "wilcoxon": {
       "n": 12,
@@ -205,19 +205,19 @@
         {
           "round": "r1",
           "dir": "benchmark/results/artifacts/2026-09-11-glm-5.3-flash-s1-s22",
-          "meanDelta": 6.318181818181818,
+          "meanDelta": 6.3182,
           "n": 22
         },
         {
           "round": "round2",
           "dir": "benchmark/results/artifacts/2026-09-11-glm-5.3-flash-s1-s22-round2",
-          "meanDelta": 8.818181818181818,
+          "meanDelta": 8.8182,
           "n": 22
         },
         {
           "round": "round3",
           "dir": "benchmark/results/artifacts/2026-09-11-glm-5.3-flash-s1-s22-round3",
-          "meanDelta": 9.818181818181818,
+          "meanDelta": 9.8182,
           "n": 22
         }
       ],
@@ -225,13 +225,13 @@
         {
           "round": "r1",
           "dir": "benchmark/results/artifacts/2026-09-13-glm-5.2-s1-s22",
-          "meanDelta": 1.5454545454545454,
+          "meanDelta": 1.5455,
           "n": 22
         },
         {
           "round": "round2",
           "dir": "benchmark/results/artifacts/2026-09-13-glm-5.2-s1-s22-round2",
-          "meanDelta": 1.6363636363636365,
+          "meanDelta": 1.6364,
           "n": 22
         },
         {
@@ -252,12 +252,22 @@
         "median": 0
       }
     },
-    "baselineVsGainSpearman": {
+    "repeatAggregationSensitivity": {
       "glm-5.3-flash": {
-        "spearmanBaselineVsGain": -0.696
+        "meanOverRepeats": 8.3182,
+        "medianPerArmOverRepeats": 9.2727
       },
       "glm-5.2": {
-        "spearmanBaselineVsGain": -0.274
+        "meanOverRepeats": 2.7273,
+        "medianPerArmOverRepeats": 3.0455
+      }
+    },
+    "baselineVsGainSpearman": {
+      "glm-5.3-flash": {
+        "spearmanBaselineVsGain": -0.742
+      },
+      "glm-5.2": {
+        "spearmanBaselineVsGain": -0.6406
       }
     },
     "zeroHandling": {
@@ -265,14 +275,5 @@
       "strongNZero": 16,
       "note": "wilcoxon n excludes zero deltas; zeros reported as nZero"
     }
-  },
-  "conclusion": {
-    "liftGapPoint": 6.23,
-    "liftGapCi95": [
-      2.590909090909091,
-      10.045454545454545
-    ],
-    "shapeStable": null,
-    "note": "filled by report; retrospective exploratory analysis, not a preregistered test of capability mechanism"
   }
 }
