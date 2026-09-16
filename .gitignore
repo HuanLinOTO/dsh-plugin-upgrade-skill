@@ -45,5 +45,5 @@ jobs/
 .dsh-plugin-smoke-run-*/
 
 # unified-run local credential configs
-benchmark/results/artifacts/2026-09-15-glm-5.3-flash-unified-s16/harbor/*.config.local.json
+benchmark/results/artifacts/*/harbor/*.config.local.json
 

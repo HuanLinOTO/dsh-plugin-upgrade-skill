@@ -167,3 +167,28 @@ test('historical reference table matches the committed round-1 totals', () => {
   assert.equal(skill, 1855)
   assert.equal(Object.keys(HISTORICAL_ROUND1_REF.perTask).length, 22)
 })
+
+// Regression: a correction for one legacy run must never relabel future judges.
+import { correctLegacyJudgeModel } from './collect-unified-run-cells.mjs'
+
+test('legacy judge correction is restricted to the affected run and malformed identity', () => {
+  const run = '2026-09-15-glm-5.3-flash-unified-s16'
+  const broken = { judgeModel: 'apply', judgeTransport: 'zcode-subagent-v1', score: 55 }
+  assert.equal(correctLegacyJudgeModel(broken, run).judgeModel, 'GLM-5.3-Flash')
+  assert.equal(broken.judgeModel, 'apply')
+  assert.deepEqual(correctLegacyJudgeModel(broken, 'future-run'), broken)
+  const valid = { ...broken, judgeModel: 'external-judge' }
+  assert.deepEqual(correctLegacyJudgeModel(valid, run), valid)
+  const other = { ...broken, judgeTransport: 'http' }
+  assert.deepEqual(correctLegacyJudgeModel(other, run), other)
+})
+
+test('committed configs are portable; execution configs resolve local mount paths', () => {
+  const schedule = buildSchedule()
+  const portable = harborJobConfig(schedule, 'r1-withskill-a')
+  assert.equal(portable.agents[0].skills[0], '<repo-root>/skills/plugin-upgrade')
+  const local = harborJobConfig(schedule, 'r1-withskill-a', { localPaths: true })
+  assert.ok(local.agents[0].skills[0].startsWith('/'))
+  assert.ok(!local.agents[0].skills[0].includes('<repo-root>'))
+  assert.deepEqual(harborJobConfig(schedule, 'r1-noskill-a', { localPaths: true }).agents[0].skills, [])
+})

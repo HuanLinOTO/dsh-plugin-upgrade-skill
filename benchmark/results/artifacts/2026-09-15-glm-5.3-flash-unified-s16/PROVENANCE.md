@@ -38,13 +38,13 @@ historical outcome, and the same seed always reproduces it.
 
 | Field | Value |
 |---|---|
-| Solver | GLM-5.3-Flash via fresh ZCode subagent sessions (bigmodel coding-plan gateway); one session per cell, clean staged workspace, byte-identical prompts across arms |
+| Solver | GLM-5.3-Flash via fresh ZCode subagent sessions (bigmodel coding-plan gateway); one session per cell, clean staged workspace, same prompt template across arms; cell-specific workspace paths differ |
 | Solver identity | harness-declared `builtin:bigmodel-coding-plan/GLM-5.3-Flash`; OAuth gateway does not expose a server-side model list — independent identity probe NOT possible (disclosed limitation) |
 | Judge | GLM-5.3-Flash via ZCode subagent, sealed report-judge-v2 protocol (same SYSTEM/judgeInput/scoreDecisions; transport swap only), arm-blind, one report per call |
 | Judge family vs solver | same family (GLM) — per user decision; workplan's self-judging concern applies and is disclosed |
 | Pilot | 4 cells on excluded tasks S4 + S10 (2 arms × 1 rep), dev role disclosed, excluded from formal stats; chain validated, budget policy: no hard wall cap, actual durations logged |
 | Cells | 64/64 solved, 64/64 scored, 0 solver infra failures, 0 judge errors |
-| Wall time | solver 128–1040 s/cell; judge 43–294 s/cell; per-cell tokens in execution-log.jsonl |
+| Wall time | formal solver 128–1031 s/cell; pilot includes a 1040 s cell; judge timing absent from committed execution-log.jsonl |
 | Contamination audit | 64 reports: no sealed-path references, no rubric/grading language detected |
 | Outcome | mean Δ +4.92 (CI95 [0.31, 10.86]), Wilcoxon p=0.080, 8/16 ceiling pairs — see validation report |
 | Per-item judging evidence | judge/<arm>/r<rep>/<task>/{verdict.json,details.json} (criterion verdicts + reasons; input sha256 in details) |
@@ -68,3 +68,7 @@ historical outcome, and the same seed always reproduces it.
 Nothing in this directory may be regenerated after scores exist except through
 the committed deterministic scripts (`--check` must stay green). Raw reports,
 judge `details.json` per cell and this provenance file are the evidence trail.
+
+## Maintainer review corrections
+
+Committed Harbor configs use `<repo-root>` placeholders; `--local` resolves mount paths for the current checkout. They are reproduction templates, not the ZCode execution configuration. The original details.json model fields retain the malformed `apply` value as historical evidence; the score-record correction is declared identity only, not endpoint attestation. Formal solver resource totals and their limits are documented in the validation report.

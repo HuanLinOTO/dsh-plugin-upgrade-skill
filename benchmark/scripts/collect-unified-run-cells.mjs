@@ -7,7 +7,7 @@
 // byte-identical, hash-pinned skill tree so repository link validation passes.
 // The pristine originals stay under trials/ (uncommitted).
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
-import { join, relative, resolve } from 'node:path'
+import { join, dirname, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url))
@@ -34,11 +34,16 @@ function findReport(dir) {
   return walk(agentOutput)
 }
 
-function rewriteSkillLinks(text, reportDest) {
-  // path segments below repoRoot include the report file itself; links need one '..' per directory
-  const dirsBelowRoot = reportDest.slice(repoRoot.length).split('/').length - 2
-  const ups = '../'.repeat(dirsBelowRoot)
-  return text.replace(/\]\(((?:\.\.\/)+)skills\/plugin-upgrade\//g, `](${ups}skills/plugin-upgrade/`)
+export function rewriteSkillLinks(text, reportDest) {
+  const target = relative(dirname(reportDest), join(repoRoot, 'skills/plugin-upgrade')).split('\\').join('/')
+  return text.replace(/\]\((?:\.\.\/)+skills\/plugin-upgrade\//g, `](${target}/`)
+}
+
+export function correctLegacyJudgeModel(record, runName) {
+  if (runName !== '2026-09-15-glm-5.3-flash-unified-s16'
+      || record.judgeTransport !== 'zcode-subagent-v1' || record.judgeModel !== 'apply') return record
+  return { ...record, judgeModel: 'GLM-5.3-Flash',
+    judgeModelNote: "restored from run PROVENANCE: this historical driver wrote argv[0] ('apply'); GLM-5.3-Flash is the declared transport identity, not an independently verified served-model identity" }
 }
 
 function collectArm(arm) {
@@ -53,9 +58,7 @@ function collectArm(arm) {
         mkdirSync(join(RUN_DIR, 'scores'), { recursive: true })
         // The driver's flag parser recorded 'apply' (argv[0]) as judgeModel; the
         // transport identity is documented and restored here (see PROVENANCE).
-        const scored = JSON.parse(readFileSync(record, 'utf8'))
-        scored.judgeModel = 'GLM-5.3-Flash'
-        scored.judgeModelNote = "restored: driver bug wrote argv[0] ('apply'); every judge call was a GLM-5.3-Flash subagent per execution-log/PROVENANCE"
+        const scored = correctLegacyJudgeModel(JSON.parse(readFileSync(record, 'utf8')), RUN_DIR.split('/').at(-1))
         writeFileSync(join(RUN_DIR, 'scores', `${task}__${arm}__${repeat}.json`), JSON.stringify(scored, null, 2) + '\n')
       }
       const judgeDir = join(RUN_DIR, 'judge', arm, repeat, task)
@@ -77,6 +80,8 @@ function collectArm(arm) {
   }
 }
 
+const isMain = process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href
+if (isMain) {
 collectArm('no-skill')
 collectArm('with-skill')
 
@@ -90,3 +95,4 @@ for (const cell of schedule.cells) {
 }
 console.log(`collected: ${graded}/${schedule.cells.length} cells scored`)
 if (missing.length) console.log(`missing:\n${missing.join('\n')}`)
+}

@@ -95,10 +95,10 @@ export function buildSchedule(seed = SCHEDULE_SEED) {
   }
 }
 
-export function harborJobConfig(schedule, jobId, { model = MODEL_ID, env = {} } = {}) {
+export function harborJobConfig(schedule, jobId, { model = MODEL_ID, env = {}, localPaths = false } = {}) {
   const job = schedule.jobs.find((entry) => entry.id === jobId)
   if (!job) throw new Error(`unknown job ${jobId}`)
-  const skillMount = job.arm === 'with-skill' ? [resolve(repoRoot, 'skills/plugin-upgrade')] : []
+  const skillMount = job.arm === 'with-skill' ? [localPaths ? resolve(repoRoot, 'skills/plugin-upgrade') : '<repo-root>/skills/plugin-upgrade'] : []
   const extra = job.arm === 'no-skill' ? [ZERO_SKILL_INSTRUCTION] : []
   const slug = model.toLowerCase().replace(/[^a-z0-9]/g, '')
   return {
@@ -176,7 +176,7 @@ function writeOutputs({ local = false } = {}) {
       throw new Error('no solver credential found; export ZAI_API_KEY (or ANTHROPIC_AUTH_TOKEN) before --local')
     }
     for (const jobId of schedule.jobOrder) {
-      writeFileSync(join(dir, 'harbor', `${jobId}.config.local.json`), renderJson(harborJobConfig(schedule, jobId, { env })))
+      writeFileSync(join(dir, 'harbor', `${jobId}.config.local.json`), renderJson(harborJobConfig(schedule, jobId, { env, localPaths: true })))
     }
     console.log('wrote config.local.json files (gitignored) with credentials from environment')
   }

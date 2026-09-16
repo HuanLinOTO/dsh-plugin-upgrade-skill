@@ -13,7 +13,7 @@
       "model_name": "anthropic/GLM-5.2",
       "n_concurrent": 3,
       "skills": [
-        "/Users/rqq/dsh-plugin-upgrade-skill/skills/plugin-upgrade"
+        "<repo-root>/skills/plugin-upgrade"
       ],
       "env": {
         "ANTHROPIC_BASE_URL": "REDACTED-set-via-config-local-or-env",
