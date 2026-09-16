@@ -13,30 +13,34 @@
 
 | Arm | Total | Mean |
 |---|---:|---:|
-| zero-skill | **2118 / 2200** | 96.3% |
+| zero-skill | **2117.5 / 2200** | 96.3% |
 | with-skill | **2160 / 2200** | 98.2% |
-| skill lift | **+42 (+1.9 pp)** | |
+| skill lift | **+42.5 (+1.9 pp)** | |
 
 Per-task scores and notes: `artifacts/2026-09-15-glm-5.3-s1-s22/aggregate.json`. Raw reports under `noskill/`, `skill/`; judge verdicts under `judge/{noskill,skill}/`.
 
-## Three-model capability ladder (paired, same task pool and protocol where noted)
+## Historical configurations on the same task pool (protocols differ)
 
 | Model | Protocol | zero-skill | with-skill | lift |
 |---|---|---:|---:|---:|
 | glm-5.3-flash | 3-round median ×22 | 1711 / 2200 (77.8%) | 1915 / 2200 (87.0%) | **+204 (+9.3 pp)** |
 | glm-5.2 | 3-round median ×22 | 2053 / 2200 (93.3%) | 2120 / 2200 (96.4%) | **+67 (+3.0 pp)** |
-| glm-5.3 (this run, n=1) | single round ×22 | 2118 / 2200 (96.3%) | 2160 / 2200 (98.2%) | **+42 (+1.9 pp)** |
+| glm-5.3 (this run, n=1) | single round ×22 | 2117.5 / 2200 (96.3%) | 2160 / 2200 (98.2%) | **+42.5 (+1.9 pp)** |
 
-**The skill benefit decreases monotonically as model capability rises** (+9.3 pp → +3.0 pp → +1.9 pp), while zero-skill capability rises (77.8% → 93.3% → 96.3%). This is the predicted ceiling pattern for the paper's capability-contingent main line: the skill mostly substitutes for capability the stronger model already provides.
+The point estimates of absolute skill lift decrease across these three named configurations (+9.3 → +3.0 → +1.9 pp), while their observed no-skill scores increase. This is a descriptive historical comparison, not an independently established capability ladder. Repetition counts, scoring versions and other protocol details differ. High baselines leave little room for absolute improvement, but these data do not identify why lift differs or show that stronger models cannot use skills. This adds a high-baseline observation; it does not test the rising side or establish an inverted-U law.
 
-- With glm-5.3, 15 of 22 tasks are already at 100/100 zero-skill; the remaining zero-skill shortfalls are S8 (80), S4 (75), S6 (88), S15/S16 (90), S1 (95).
-- S8 is the one task where the skill does **not** help in any model record: reports present the absent mirror tag v0.9.3 as immediately installable (same miss in glm-5.2 rounds 2–3).
+- With glm-5.3, 15 of 22 tasks are already at 100/100 zero-skill; the remaining zero-skill shortfalls are S8 (80), S4 (75), S6 (87.5), S15/S16 (90), S1 (95).
+- In this GLM-5.3 round, S8 stays at 80 in both arms. It is not a universal no-benefit task: the historical GLM-5.3-flash three-round medians show a +10-point lift on S8.
 - S4 remains the largest skill win (75 → 100); S6, S15, S16 also repaired to 100 by the skill.
 - Two skill-arm regressions: S17 (node --check instead of vm.Script parse) and S18 (teardown disposal instead of `timer.unref`) at 90 each.
 
 ## Disclosures / limitations
 
-- Single round (n=1) for glm-5.3; the glm-5.2 and glm-5.3-flash rows are 3-round medians, so cross-row comparison mixes aggregation protocols (the ladder direction is stable under either reading, but the glm-5.3 lift has wider uncertainty than the medians).
-- Judge model (glm-5.3-flash) differs from the solver (glm-5.3) — same family, so same-family correlation bias is possible but reduced relative to the glm-5.3-flash record where solver and judge were the same model.
+- Single round (n=1) for glm-5.3; the glm-5.2 and glm-5.3-flash rows are 3-round medians, so cross-row comparison mixes aggregation protocols ; this run alone does not quantify between-run variability or establish a cross-model ordering.
+- Judge model (glm-5.3-flash) differs from the solver (glm-5.3) — same family, so same-family correlation bias remains possible. Using a different model does not demonstrate a reduction in that bias; independent scoring review remains necessary.
 - **S15-noskill report truncation**: the solver report ends mid code block at the model output-length limit (159 lines). It was judged as-is (90/100) per the single-attempt protocol; this is an output-limit truncation, not an API-quota or concurrency failure, so no re-run was performed.
 - Judge verdicts live in per-arm subdirectories because verdict filenames do not carry the arm (the flat layout caused cross-arm overwrites in earlier rounds).
+
+## Maintainer verification (2026-09-16)
+
+All 44 committed verdicts were recomputed with the rubric packets from `e0a9ff5`. The S6 no-skill score is exactly **87.5**, not the initially rounded 88; the corrected no-skill total is **2117.5**, with-skill total **2160**, and lift **42.5 / 22 = 1.9318 pp**. Reports and criterion-level verdicts are unchanged. No new model calls or re-grading were performed.

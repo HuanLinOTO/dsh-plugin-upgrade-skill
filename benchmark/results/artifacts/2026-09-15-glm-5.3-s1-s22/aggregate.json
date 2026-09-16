@@ -128,9 +128,9 @@
   {
     "task": "S6-corridor-net-state",
     "method": "llm-rubric",
-    "noskill": 88,
+    "noskill": 87.5,
     "skill": 100,
-    "notes": "noskill partial on informational-producer semantics (retention-not-filtering point not explicit); skill 100 in every model record."
+    "notes": "noskill partial on informational-producer semantics (retention-not-filtering point not explicit); skill 100 in every model record. Maintainer verification: exact rubric total is 87.5; initial aggregate rounded it to 88."
   },
   {
     "task": "S7-unpublished-cohort",
