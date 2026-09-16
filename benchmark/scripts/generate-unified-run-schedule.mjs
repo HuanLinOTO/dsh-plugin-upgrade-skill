@@ -131,6 +131,31 @@ function renderJson(value) {
   return JSON.stringify(value, null, 2) + '\n'
 }
 
+// Subagent-runner execution order: deterministic interleave of the committed
+// job orders so every batch of four carries two no-skill and two with-skill
+// cells across four different tasks (arm balance per batch, repeats separated
+// by round). Harbor's job-level ABBA design maps onto batch-level balance here.
+export function executionOrder(schedule) {
+  const byJob = Object.fromEntries(schedule.jobs.map((job) => [job.id, job.tasks]))
+  const order = []
+  for (const round of [1, 2]) {
+    const roundJobs = schedule.jobs.filter((job) => job.round === round)
+    const nsA = byJob[`r${round}-noskill-a`]
+    const wsA = byJob[`r${round}-withskill-a`]
+    const nsB = byJob[`r${round}-noskill-b`]
+    const wsB = byJob[`r${round}-withskill-b`]
+    for (let i = 0; i < 8; i++) {
+      for (const job of roundJobs) {
+        const arm = job.arm
+        const half = job.half
+        const task = (half === 'A' ? (arm === 'no-skill' ? nsA : wsA) : (arm === 'no-skill' ? nsB : wsB))[i]
+        order.push({ task, arm, repeat: round, job: job.id })
+      }
+    }
+  }
+  return order
+}
+
 function writeOutputs({ local = false } = {}) {
   const schedule = buildSchedule()
   const dir = join(repoRoot, RUN_DIR)
@@ -178,8 +203,17 @@ if (isMain) {
     console.log(`schedule deterministic: ${schedule.totalTrials} cells in ${schedule.jobOrder.length} jobs`)
   } else {
     const schedule = writeOutputs({ local })
-    console.log(`wrote ${RUN_DIR}/schedule.json and ${schedule.jobOrder.length} harbor configs`)
+    const order = executionOrder(schedule)
+    const dir = join(repoRoot, RUN_DIR)
+    writeFileSync(join(dir, 'execution-order.json'), renderJson({ schemaVersion: 'unified-execution-order-v1', seed: SCHEDULE_SEED, batchSize: 4, cells: order }))
+    console.log(`wrote ${RUN_DIR}/schedule.json, execution-order.json and ${schedule.jobOrder.length} harbor configs`)
     console.log(`arm ledger: ${JSON.stringify(schedule.armLedger)}`)
     console.log(`job order: ${schedule.jobOrder.join(' → ')}`)
+    const batchSummary = []
+    for (let i = 0; i < order.length; i += 4) {
+      const batch = order.slice(i, i + 4)
+      batchSummary.push(`${i / 4 + 1}: ${batch.map((c) => `${c.arm === 'no-skill' ? 'NS' : 'WS'}/${c.task.replace(/-.*/, '')}`).join(' ')}`)
+    }
+    console.log(batchSummary.slice(0, 4).join('\n'))
   }
 }
