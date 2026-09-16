@@ -7,8 +7,8 @@ This is the `Qwen3.8-27B` cell of the workplan's three-config comparison: 16 S-p
 ## Headline
 
 - with-skill **0.7789** (18/32 perfect) vs no-skill **0.7117** (13/32 perfect); task-weighted Δ **+0.0672**, bootstrap 95% CI **[−0.124, +0.263]** (task-level resampling, 10,000 draws, seed `20260915`).
-- Timeouts: **5/64 (7.8%)** — 4 with-skill vs 1 no-skill. The earlier Qwen run on the same task family under the shipped 300 s budgets timed out on roughly **55%** of S-series trials; moving both arms to the uniform 900 s budget collapses that rate.
-- The skill arm consumed **2.51× the input tokens** (13,795,810 vs 5,490,991) for a mean gain of +0.067 — the reading cost is large and mostly unrecovered on this stack.
+- Timeouts: **5/64 (7.8%)** — 4 with-skill vs 1 no-skill. The earlier Qwen run on the same task family under the shipped 300 s budgets timed out on roughly **55%** of S-series trials; this newer run has a lower observed timeout rate, but task coverage, scoring and execution also changed, so the reduction cannot be attributed to budget alone.
+- The skill arm consumed **2.51× the input tokens** (13,795,810 vs 5,490,991) for a mean gain of +0.067 — this documents a resource increase alongside an uncertain score gain; it does not define a score-to-cost break-even point.
 - Largest gains: **S17 +0.95** (bare no-skill arm scores 0.00), S6 +0.56, S2 +0.55, S1 +0.38. Regressions: S19 −0.65, S11/S18 −0.45, S15 −0.10, S21 −0.05.
 - All 64 trials produced judge verdicts; **zero `judge_error`**.
 
@@ -74,7 +74,7 @@ Cached input is a subset of input. Trial seconds and token sums are read from Ha
 - Δ is computed per task (mean of 2 reps per arm), then averaged with equal task weight — the workplan §5 primary-analysis convention. Bootstrap resamples the 16 task deltas; the resulting 95% interval **[−0.124, +0.263]** spans zero, so the positive direction is **not decisive**.
 - 8 tasks positive / 3 zero / 5 negative — the point estimate is driven by a few tasks (S17 +0.95, S2/S6 ≈ +0.55) while S19 (−0.65) and S11/S18 (−0.45) run the other way.
 - Single batch, two reps; no across-batch variance was measured. Bootstrap and a paired significance test would not be two independent confirmations, so only the interval is reported.
-- Timeouts are reported separately and never imputed: three timed-out trials still received judge verdicts (0.0, 0.0, 0.3) on their partial output; two trials recorded `NonZeroAgentExitCodeError` (S1 no-skill rep1 → 0.0, S11 with-skill rep1 → 0.0). All seven exceptional trials are listed in the companion CSV/JSON.
+- Timeouts are reported separately and never imputed: all five timed-out trials have status `scored` in the submitted CSV (four rewards 0.0, one 0.3); the underlying verdict reasons are not committed; two trials recorded `NonZeroAgentExitCodeError` (S1 no-skill rep1 → 0.0, S11 with-skill rep1 → 0.0). All seven exceptional trials are listed in the companion CSV/JSON.
 
 ## Comparison boundaries
 
@@ -84,8 +84,10 @@ Cached input is a subset of input. Trial seconds and token sums are read from Ha
 
 ## Reproduction
 
-The run is fully reproducible from Harbor `result.json` files; per-trial rewards, seconds, exceptions and judge statuses are in `validation-report-2026-09-16-codex-qwen3.8-27b-medium-s16-paired.csv` / `.json`. Aggregation scripts (task-weighted Δ, bootstrap) are in the contributor's run record; raw agent sessions and verifier outputs are retained by the contributor and not committed.
+The committed CSV permits independent recomputation of score means, durations, exception counts and task deltas; independent reproduction of the full run and its grading requires the uncommitted raw artifacts. Per-trial rewards, seconds, exceptions and judge statuses are in `validation-report-2026-09-16-codex-qwen3.8-27b-medium-s16-paired.csv` / `.json`. Aggregation scripts (task-weighted Δ, bootstrap) are in the contributor's run record; raw agent sessions and verifier outputs are retained by the contributor and not committed.
 
 ## Non-goals
 
 This is a single-config cell of the inverted-U design, not a complete shape analysis, not a significance claim, and not a formal benchmark entry. The three-config comparison and the paper-level statements remain with the workplan's decision points.
+
+Maintainer boundary: token totals and job-wall totals are contributor-reported aggregates, not independently verifiable from the committed CSV (which lacks per-trial token and job-wall fields). The sampling script, bootstrap PRNG definition and raw verdicts are not committed, so the exact seed-to-sample and seed-to-interval reproduction remains incomplete. This is archived as a disclosed draft, not certified as the completed unified three-configuration experiment.
