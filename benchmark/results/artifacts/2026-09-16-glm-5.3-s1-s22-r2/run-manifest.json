@@ -1,0 +1,8 @@
+﻿{
+  "harness": "dsh web in-session subagents",
+  "round": "2",
+  "model": "zai/glm-5.3",
+  "base_commit": "e0a9ff5",
+  "solver_completed": "2026-09-16",
+  "notes": "R2 of 3-round median; 44/44 reports; concurrency 2; one 5-hour quota interruption during skill S6/S7 -- both silently failed and relaunched once each per protocol (disclosed); judged by 44 glm-5.3-flash judge subagents (44/44 verdicts); aggregate: noskill 2076 / skill 2145 / lift +69 (+3.1pp)"
+}
