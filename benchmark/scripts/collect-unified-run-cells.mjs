@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url))
-const RUN_DIR = join(repoRoot, 'benchmark/results/artifacts/2026-09-15-glm-5.3-flash-unified-s16')
+const RUN_DIR = join(repoRoot, 'benchmark/results/artifacts', process.env.UNIFIED_RUN_DIR ?? '2026-09-15-glm-5.3-flash-unified-s16')
 const TRIALS = join(RUN_DIR, 'trials')
 
 function findReport(dir) {

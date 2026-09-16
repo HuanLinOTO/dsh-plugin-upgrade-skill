@@ -12,7 +12,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { pairedBootstrap, wilcoxonSignedRank, mean, median, round4 } from './measure-paired-effect.mjs'
 
-export const RUN_DIR = 'benchmark/results/artifacts/2026-09-15-glm-5.3-flash-unified-s16'
+export const RUN_DIR = `benchmark/results/artifacts/${process.env.UNIFIED_RUN_DIR ?? '2026-09-15-glm-5.3-flash-unified-s16'}`
 export const ANALYSIS_SEED = 20260915
 export const BOOTSTRAP_REPLICATES = 10000
 export const HISTORICAL_ROUND1_REF = {

@@ -18,7 +18,7 @@ import { join, dirname } from 'node:path'
 import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 
-export const RUN_DIR = 'benchmark/results/artifacts/2026-09-15-glm-5.3-flash-unified-s16'
+export const RUN_DIR = `benchmark/results/artifacts/${process.env.UNIFIED_RUN_DIR ?? '2026-09-15-glm-5.3-flash-unified-s16'}`
 export const GRADE_SEED = 20260915
 
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url))
