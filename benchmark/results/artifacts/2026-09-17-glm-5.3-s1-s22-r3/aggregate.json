@@ -114,7 +114,7 @@
   {
     "task": "S4-legacy-client-imports",
     "method": "llm-rubric",
-    "noskill": 63,
+    "noskill": 62.5,
     "skill": 100,
     "notes": ""
   },
@@ -122,7 +122,7 @@
     "task": "S5-negative-naming",
     "method": "llm-rubric",
     "noskill": 100,
-    "skill": 88,
+    "skill": 87.5,
     "notes": ""
   },
   {
