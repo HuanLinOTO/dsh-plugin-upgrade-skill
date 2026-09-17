@@ -13,9 +13,9 @@
 
 | Arm | Total | Mean |
 |---|---:|---:|
-| zero-skill | **2076 / 2200** | 94.4% |
+| zero-skill | **2075 / 2200** | 94.3% |
 | with-skill | **2145 / 2200** | 97.5% |
-| skill lift | **+69 (+3.1 pp)** | |
+| skill lift | **+70 (+3.2 pp)** | |
 
 Per-task scores: `artifacts/2026-09-16-glm-5.3-s1-s22-r2/aggregate.json`. Raw reports under `noskill/`, `skill/`; judge verdicts under `judge/{noskill,skill}/`.
 
@@ -24,19 +24,24 @@ Per-task scores: `artifacts/2026-09-16-glm-5.3-s1-s22-r2/aggregate.json`. Raw re
 | Round | zero-skill | with-skill | lift |
 |---|---:|---:|---:|
 | R1 ([#235](https://github.com/oh-my-dsh/dsh-plugin-upgrade-skill/pull/235)) | 2117.5 / 2200 (96.3%) | 2160 / 2200 (98.2%) | +42.5 (+1.9 pp) |
-| R2 (this run) | 2076 / 2200 (94.4%) | 2145 / 2200 (97.5%) | +69 (+3.1 pp) |
+| R2 (this run) | 2075 / 2200 (94.3%) | 2145 / 2200 (97.5%) | +70 (+3.2 pp) |
 
-Both rounds keep lift positive and in the single-digit pp range for glm-5.3, versus +9.3 pp for glm-5.3-flash and +3.0 pp for glm-5.2 (3-round medians). The R1→R2 lift swing (+1.9 → +3.1 pp) illustrates single-round variability; the 3-round median protocol exists precisely to absorb it. R3 is still needed to close the protocol.
+Both rounds keep lift positive and in the single-digit pp range for glm-5.3, versus +9.3 pp for glm-5.3-flash and +3.0 pp for glm-5.2 (3-round medians). The R1→R2 lift swing (+1.9 → +3.2 pp) describes variability in these recorded rounds. Taking medians cannot remove changes in grading protocols, task exposure, or other confounding; it does not establish a capability ordering.
 
 Per-task notes for this round:
 
-- **S4 remains the largest skill win** (13 → 75): the no-skill arm located all four breaking touchpoints but prescribed no migration direction, while the skill arm produced migration plans (with one partial for quoting a wrong loader id and one unconfirmed API mapping).
-- No-skill shortfalls beyond S4: S1 (95), S6 (88 — retention-vs-filtering distinction partial), S8/S18 (90).
+- **S4 remains the largest skill win** (12.5 → 75): the no-skill arm located all four breaking touchpoints but prescribed no migration direction, while the skill arm produced migration plans (with one partial for quoting a wrong loader id and one unconfirmed API mapping).
+- No-skill shortfalls beyond S4: S1 (95), S6 (87.5 — retention-vs-filtering distinction partial), S8/S18 (90).
 - With-skill shortfalls: S3 (90 — slot-registration partial), S21 (90 — manifest-count discrepancy unaddressed); everything else 100.
 - S8 stays at 90 in both arms this round (R1: 80 both arms).
 
 ## Disclosures / limitations
 
-- Round 2 of 3 (n=1 per round); between-round totals moved in both arms (noskill −41.5, skill −15), so single-round numbers should not be read as stable model scores.
+- Round 2 of 3 (n=1 per round); between-round totals moved in both arms (noskill −42.5, skill −15), so single-round numbers should not be read as stable model scores.
 - Judge model (glm-5.3-flash) differs from the solver (glm-5.3) — same family, so same-family correlation bias remains possible; independent scoring review remains necessary.
 - The skill S6/S7 relaunches after the quota interruption are disclosed above; relaunch followed the pre-registered silent-failure protocol (one relaunch, no selection on score).
+
+
+## Offline arithmetic correction (2026-09-17)
+
+All 44 verdicts were recomputed using the scoring function and packets at `e0a9ff5`. Half-point values are preserved before aggregation. Original reports and criterion verdicts are unchanged; no new model calls or retries were made.
