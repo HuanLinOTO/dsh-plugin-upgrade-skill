@@ -55,6 +55,11 @@ const WORKFLOWS = {
     defaults: ['heavy-dependency'],
     required: ['heavy-dependency'],
   },
+  'fleet-sweep': {
+    outcome: 'Sweep the whole installed plugin fleet against an upgraded host',
+    defaults: ['fleet-sweep'],
+    required: ['fleet-sweep'],
+  },
 }
 
 const CAPABILITIES = {
@@ -70,6 +75,12 @@ const CAPABILITIES = {
     owner: 'plugin-heavy-dep',
     confirmations: ['repository-writes', 'dependency-runtime'],
     requires: ['static-tests', 'functional-probe', 'browser-check', 'rollback', 'package-artifact'],
+    surface: 'web-client',
+  },
+  'fleet-sweep': {
+    description: 'Sweep the whole installed plugin fleet against the upgraded host',
+    owner: 'plugin-fleet-sweep',
+    confirmations: ['dependency-runtime'],
     surface: 'web-client',
   },
   'dsh-audit': { description: 'DSH version compatibility audit', owner: 'dsh-upgrade-audit', confirmations: [] },
@@ -109,6 +120,7 @@ const PHASE_ORDER = [
   'core',
   'runtime-debug',
   'heavy-dependency',
+  'fleet-sweep',
   'naming-local',
   'registry-query',
   'static-tests',
