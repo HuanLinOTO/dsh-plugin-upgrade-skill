@@ -80,8 +80,9 @@ const CAPABILITIES = {
   'fleet-sweep': {
     description: 'Sweep the whole installed plugin fleet against the upgraded host',
     owner: 'plugin-fleet-sweep',
-    confirmations: ['dependency-runtime'],
-    surface: 'web-client',
+    // The sweep runs the upgraded host, then commits, tags and pushes each fixed plugin and its mirrors.
+    // No surface gate: a fleet mixes Web Client and logic-only plugins, so the sweep must plan by default.
+    confirmations: ['repository-writes', 'dependency-runtime', 'external-publication'],
   },
   'dsh-audit': { description: 'DSH version compatibility audit', owner: 'dsh-upgrade-audit', confirmations: [] },
   'touchpoint-scan': { description: 'Seven-touchpoint plugin scan', owner: 'plugin-upgrade', confirmations: [] },

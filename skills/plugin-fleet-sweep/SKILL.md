@@ -29,8 +29,10 @@ nothing about browser-engine and runtime-surface changes.
    exercised" instead of claiming success.
 4. **Fix and release per plugin, never as a fleet commit.** Each broken
    plugin gets its own branch-or-main commit, version bump, changelog row,
-   tag, and mirror push (the repositories' `sync-mirrors.mjs` flow). Mixed
-   fleet commits make per-plugin rollbacks impossible.
+   tag, and mirror push (the repositories' own mirror flow; `sync-mirrors.mjs`
+   is specific to the author's plugin repositories - use whatever the target
+   repository documents, or skip mirrors if it has none). Mixed fleet commits
+   make per-plugin rollbacks impossible.
 5. **Compatibility builds over host-locked builds** when the plugin must
    span host generations: resolve renamed host exports at runtime through a
    fallback chain (old name → new variants) instead of static named imports,

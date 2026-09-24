@@ -4,7 +4,8 @@
 
 - Target host version + its corridor cards (`plugin-upgrade/references/v<target>.md`).
 - Fleet repositories with a working build/test toolchain and their mirror
-  push scripts (`sync-mirrors.mjs`).
+  push scripts, if any (`sync-mirrors.mjs` below is the name used in the
+  author's own plugin repositories, not a DSH or skill-provided tool).
 - The upgraded host reachable (GUI URL) and the diagnosis toolchain from
   `plugin-runtime-debug/references/browser-forensics.md` (session cookie,
   CDP driver, temporary bundle instrumentation).
@@ -49,8 +50,8 @@ For each plugin, assert in this order and record each result separately:
 
 - Version bump + changelog/compatibility-table row naming the exact host
   version range and the verification evidence.
-- Commit (fix + rebuilt lib artifacts), tag `vX.Y.Z`, run
-  `sync-mirrors.mjs` (all mirrors, HEAD + tags), then confirm each remote
+- Commit (fix + rebuilt lib artifacts), tag `vX.Y.Z`, run the repository's
+  mirror script (e.g. the author-specific `sync-mirrors.mjs`; all mirrors, HEAD + tags), then confirm each remote
   carries the tag and its flavored HEAD.
 - Rebuild-order pitfall: bump the version BEFORE the release build, or the
   bundle embeds the old version and the update chip advertises an update to
