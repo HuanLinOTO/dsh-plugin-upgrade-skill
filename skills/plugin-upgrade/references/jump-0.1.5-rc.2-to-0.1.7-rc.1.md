@@ -1,12 +1,12 @@
 ---
-kind: dsh-version-card-set
+kind: dsh-version-jump-card-set
 schema: 1
 from: dsh-v0.1.5-rc.2
 to: dsh-v0.1.7-rc.1
 status: draft
 coverage: curated
 cardCount: 33
-idPrefix: DSH-0.1.7-RC1
+idPrefix: DSH-0.1.7-J1
 verifiedAt: 2026-09-23
 ---
 
@@ -27,46 +27,53 @@ verifiedAt: 2026-09-23
 > `0.1.6-alpha.2 → 0.1.7-alpha.1/alpha.2` edges were still in open pull requests when this file
 > was written; this edge is the jump view for a deployment that never stopped on the alphas. Do not
 > read it as a per-edge ledger of the intermediate corridors.
+>
+> Per-edge cards: [v0.1.6-alpha.1.md](v0.1.6-alpha.1.md), `v0.1.6-alpha.2.md` (edge
+> `dsh-v0.1.6-alpha.1 → dsh-v0.1.6-alpha.2`), [v0.1.7-alpha.1.md](v0.1.7-alpha.1.md),
+> [v0.1.7-alpha.2.md](v0.1.7-alpha.2.md) and [v0.1.7-rc.1.md](v0.1.7-rc.1.md). Card IDs here use the
+> `DSH-0.1.7-J1` prefix so they never collide with the rc.1 edge's `DSH-0.1.7-RC1` cards. This file
+> is schema-validated as `kind: dsh-version-jump-card-set` but is not a corridor edge:
+> `plan-migration.mjs` builds corridors only from the per-edge `v*.md` files.
 
 ## Contents
 
-- DSH-0.1.7-RC1-01 · breaking: DSH peer compatibility is enforced at install **and** startup
-- DSH-0.1.7-RC1-02 · breaking: the PTC runtime is renamed (`codeRuntime` → `ptcRuntime`) and the Node engine moves to a separate process
-- DSH-0.1.7-RC1-03 · breaking: agent presets become declarative profile YAML (`dsh-agent-presets` is split and removed)
-- DSH-0.1.7-RC1-04 · breaking: settings move into the profile plugin Config; `ctx.settings.register` is gone
-- DSH-0.1.7-RC1-05 · breaking: Session log V4, the `session-format-v3-to-v4` migration, and attachment-carrier narrowing
-- DSH-0.1.7-RC1-06 · breaking: Remote gains duplex/binary transfer and workspace reads move to `readBytes`
-- DSH-0.1.7-RC1-07 · breaking: the Agent lifecycle is async — `agent/session-start` is removed and `agent/created` gains `source`
-- DSH-0.1.7-RC1-08 · breaking: the LLM `Message` is a role union and `createSystemMessage` loses its `plugin` argument
-- DSH-0.1.7-RC1-09 · breaking: the official DeepSeek adapter is Messages-only (base URL moves to `/anthropic`)
-- DSH-0.1.7-RC1-10 · breaking: the subagent runtime requires a Config, changes `listChildren`, and defaults delegation depth to 1
-- DSH-0.1.7-RC1-11 · breaking: the E2B providers are removed; the POSIX SSH provider family replaces them
-- DSH-0.1.7-RC1-12 · behavior: Ralph is disabled in the shipped defaults
-- DSH-0.1.7-RC1-13 · breaking: `spill-policy` becomes token-budgeted (`maxInlineBytes` → `maxInlineTokens`)
-- DSH-0.1.7-RC1-14 · breaking: `tool-cordis` is narrowed to read-only inspection
-- DSH-0.1.7-RC1-15 · breaking: the bundle manifest takes ordered patch lists and drops several `dsh.*` fields
-- DSH-0.1.7-RC1-16 · breaking: package rename ledger for the whole corridor
-- DSH-0.1.7-RC1-17 · capability: new CLI/Headless surfaces (config schema dump, profile shorthand, stdin/`--session-id`/`--json`)
-- DSH-0.1.7-RC1-18 · breaking: Agent Team becomes one bundle and the old subagent creation tools are off inside it
-- DSH-0.1.7-RC1-19 · capability: experimental speech-to-text and browser/computer-use registries
-- DSH-0.1.7-RC1-20 · capability: the bundled LibreOffice runtime and the packaged-app Node requirement
-- DSH-0.1.7-RC1-21 · capability: MCP resources, URI templates and tool pagination
-- DSH-0.1.7-RC1-22 · privacy: the DeepSeek session-log upload now defaults to on
-- DSH-0.1.7-RC1-23 · breaking: `tool.call.toolview` gains a `preparing` phase
-- DSH-0.1.7-RC1-24 · breaking: the chat-node hook context is reshaped and `turnTail` becomes a list
-- DSH-0.1.7-RC1-25 · breaking: the transcript mode becomes a presentation policy channel
-- DSH-0.1.7-RC1-26 · breaking: product icons rename from pixel suffixes to weight names
-- DSH-0.1.7-RC1-27 · breaking: the client settings transport renames `settingsScope` → `configForms`
-- DSH-0.1.7-RC1-28 · breaking: the right-sidebar tab contract (retained tabs, guide entries, placement)
-- DSH-0.1.7-RC1-29 · capability: the new sidebar surfaces ship as packages
-- DSH-0.1.7-RC1-30 · capability: component factories in the slot system
-- DSH-0.1.7-RC1-31 · capability: the plugin-manager page, its slots and the `pluginManager` Remote
-- DSH-0.1.7-RC1-32 · breaking: `ModelDirectory.select` returns a `RemoteResult`
-- DSH-0.1.7-RC1-33 · breaking: session-row actions become slot lists and `WorkspaceBrowserInjected` changes
+- DSH-0.1.7-J1-01 · breaking: DSH peer compatibility is enforced at install **and** startup
+- DSH-0.1.7-J1-02 · breaking: the PTC runtime is renamed (`codeRuntime` → `ptcRuntime`) and the Node engine moves to a separate process
+- DSH-0.1.7-J1-03 · breaking: agent presets become declarative profile YAML (`dsh-agent-presets` is split and removed)
+- DSH-0.1.7-J1-04 · breaking: settings move into the profile plugin Config; `ctx.settings.register` is gone
+- DSH-0.1.7-J1-05 · breaking: Session log V4, the `session-format-v3-to-v4` migration, and attachment-carrier narrowing
+- DSH-0.1.7-J1-06 · breaking: Remote gains duplex/binary transfer and workspace reads move to `readBytes`
+- DSH-0.1.7-J1-07 · breaking: the Agent lifecycle is async — `agent/session-start` is removed and `agent/created` gains `source`
+- DSH-0.1.7-J1-08 · breaking: the LLM `Message` is a role union and `createSystemMessage` loses its `plugin` argument
+- DSH-0.1.7-J1-09 · breaking: the official DeepSeek adapter is Messages-only (base URL moves to `/anthropic`)
+- DSH-0.1.7-J1-10 · breaking: the subagent runtime requires a Config, changes `listChildren`, and defaults delegation depth to 1
+- DSH-0.1.7-J1-11 · breaking: the E2B providers are removed; the POSIX SSH provider family replaces them
+- DSH-0.1.7-J1-12 · behavior: Ralph is disabled in the shipped defaults
+- DSH-0.1.7-J1-13 · breaking: `spill-policy` becomes token-budgeted (`maxInlineBytes` → `maxInlineTokens`)
+- DSH-0.1.7-J1-14 · breaking: `tool-cordis` is narrowed to read-only inspection
+- DSH-0.1.7-J1-15 · breaking: the bundle manifest takes ordered patch lists and drops several `dsh.*` fields
+- DSH-0.1.7-J1-16 · breaking: package rename ledger for the whole corridor
+- DSH-0.1.7-J1-17 · capability: new CLI/Headless surfaces (config schema dump, profile shorthand, stdin/`--session-id`/`--json`)
+- DSH-0.1.7-J1-18 · breaking: Agent Team becomes one bundle and the old subagent creation tools are off inside it
+- DSH-0.1.7-J1-19 · capability: experimental speech-to-text and browser/computer-use registries
+- DSH-0.1.7-J1-20 · capability: the bundled LibreOffice runtime and the packaged-app Node requirement
+- DSH-0.1.7-J1-21 · capability: MCP resources, URI templates and tool pagination
+- DSH-0.1.7-J1-22 · privacy: the DeepSeek session-log upload now defaults to on
+- DSH-0.1.7-J1-23 · breaking: `tool.call.toolview` gains a `preparing` phase
+- DSH-0.1.7-J1-24 · breaking: the chat-node hook context is reshaped and `turnTail` becomes a list
+- DSH-0.1.7-J1-25 · breaking: the transcript mode becomes a presentation policy channel
+- DSH-0.1.7-J1-26 · breaking: product icons rename from pixel suffixes to weight names
+- DSH-0.1.7-J1-27 · breaking: the client settings transport renames `settingsScope` → `configForms`
+- DSH-0.1.7-J1-28 · breaking: the right-sidebar tab contract (retained tabs, guide entries, placement)
+- DSH-0.1.7-J1-29 · capability: the new sidebar surfaces ship as packages
+- DSH-0.1.7-J1-30 · capability: component factories in the slot system
+- DSH-0.1.7-J1-31 · capability: the plugin-manager page, its slots and the `pluginManager` Remote
+- DSH-0.1.7-J1-32 · breaking: `ModelDirectory.select` returns a `RemoteResult`
+- DSH-0.1.7-J1-33 · breaking: session-row actions become slot lists and `WorkspaceBrowserInjected` changes
 
 ---
 
-### DSH-0.1.7-RC1-01 · DSH peer compatibility is enforced at install and startup
+### DSH-0.1.7-J1-01 · DSH peer compatibility is enforced at install and startup
 
 - **Type**: breaking
 - **Applies to**: every plugin whose `package.json` declares `@deepseek-ai/dsh` or any
@@ -82,7 +89,13 @@ verifiedAt: 2026-09-23
   `0.1.7-alpha.2` does **not** satisfy `0.1.7-rc.1`, while a prerelease range on the same tuple
   (`^0.1.7-alpha.2`) does.
 - **Migration recipe**: publish peers as a range that admits the target runtime (the classic
-  `^0.1.x` / `~0.1.x`, or `workspace:*` for in-repo bundles). If a hard mismatch must be accepted
+  `^0.1.x` / `~0.1.x`, or `workspace:*` for in-repo bundles).
+  **Warning — the `^0.1.7` trap:** a floor written at the target tuple does not admit a 0.1.7
+  prerelease. `~0.1.7` and `>=0.1.7` refuse `0.1.7-rc.1` under every semver version, and `^0.1.7`
+  refuses it too once the host resolves semver ≥ 7.8.3 (app-boot declares `^7.8.5`). Use a floor
+  below the target minor (`^0.1.6`, `~0.1.6`) or a prerelease floor (`^0.1.7-0`); fleet pre-checks
+  must use semver ≥ 7.8.3 with `{ includePrerelease: true }`. Full matrix and evidence:
+  DSH-0.1.7-RC1-01 in [v0.1.7-rc.1.md](v0.1.7-rc.1.md). If a hard mismatch must be accepted
   anyway, grant an exact-version exemption: `dsh plugin --profile <p> allow-version
   <pkg>@<pkgVersion> --dsh-version <exactDshVersion> --accept-risk` (without `--accept-risk` it
   refuses). Exemptions live in a **separate** profile file `compatibility.json`
@@ -93,7 +106,7 @@ verifiedAt: 2026-09-23
   authorizes nothing but does not stop startup.
 - **Source**: [rc.1 `packages/boot/app-boot/src/plugin-compatibility.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/boot/app-boot/src/plugin-compatibility.ts) · [rc.1 `.../src/profile-compatibility.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/boot/app-boot/src/profile-compatibility.ts) · [rc.1 `.../src/compatibility-preflight.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/boot/app-boot/src/compatibility-preflight.ts) · [rc.1 `apps/cli/src/plugin.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/apps/cli/src/plugin.ts)
 
-### DSH-0.1.7-RC1-02 · the PTC runtime is renamed and the Node engine moves to a separate process
+### DSH-0.1.7-J1-02 · the PTC runtime is renamed and the Node engine moves to a separate process
 
 - **Type**: breaking
 - **Applies to**: plugins that inject/read `ctx.codeRuntime`, import
@@ -116,7 +129,7 @@ verifiedAt: 2026-09-23
   plugin for `codeRuntime`, `CodeRuntime`, `CodeSdkLanguage`, `workflow-worker-thread`.
 - **Source**: [rc.1 `packages/ptc-runtime/ptc-runtime/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/ptc-runtime/ptc-runtime/src/index.ts) · [rc.1 `packages/ptc-runtime/ptc-runtime-node/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/ptc-runtime/ptc-runtime-node/src/index.ts) · [rc.1 `packages/workflow/workflow-ptc/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/workflow/workflow-ptc/src/index.ts)
 
-### DSH-0.1.7-RC1-03 · agent presets become declarative profile YAML (`dsh-agent-presets` is split and removed)
+### DSH-0.1.7-J1-03 · agent presets become declarative profile YAML (`dsh-agent-presets` is split and removed)
 
 - **Type**: breaking
 - **Applies to**: plugins importing `@deepseek-ai/dsh-agent-presets`, `AgentPresets`,
@@ -139,7 +152,7 @@ verifiedAt: 2026-09-23
   lands in `$DSH_HOME/profiles/<profile>/cordis.patch.yml`; a duplicate id is refused.
 - **Source**: [rc.1 `packages/preset/agent-preset/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/preset/agent-preset/src/index.ts) · [rc.1 `packages/preset/agent-preset-registry/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/preset/agent-preset-registry/src/index.ts)
 
-### DSH-0.1.7-RC1-04 · settings move into the profile plugin Config; `ctx.settings.register` is gone
+### DSH-0.1.7-J1-04 · settings move into the profile plugin Config; `ctx.settings.register` is gone
 
 - **Type**: breaking
 - **Applies to**: every plugin that declared a settings namespace with
@@ -162,7 +175,7 @@ verifiedAt: 2026-09-23
   `settings.yaml`.
 - **Source**: [rc.1 `packages/settings/settings/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/settings/settings/src/index.ts) · [rc.1 `packages/api/settings-controller/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/api/settings-controller/src/index.ts) · [rc.1 `.agents/notes/implemented/architecture/2026-09-19-profile-owned-live-configuration.md`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/.agents/notes/implemented/architecture/2026-09-19-profile-owned-live-configuration.md)
 
-### DSH-0.1.7-RC1-05 · Session log V4, the `session-format-v3-to-v4` migration, and attachment-carrier narrowing
+### DSH-0.1.7-J1-05 · Session log V4, the `session-format-v3-to-v4` migration, and attachment-carrier narrowing
 
 - **Type**: breaking
 - **Applies to**: plugins that read raw Session logs, store image/file attachments in **custom**
@@ -185,7 +198,7 @@ verifiedAt: 2026-09-23
   a session whose attachment lives only in a custom event exports without those bytes.
 - **Source**: [rc.1 `packages/session/session-format-v3-to-v4/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/session/session-format-v3-to-v4/src/index.ts) · [rc.1 `packages/session/session-format-catalog/src/message-projections.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/session/session-format-catalog/src/message-projections.ts) · [rc.1 `.agents/notes/implemented/bug-fix/2026-09-19-declared-session-attachment-carriers.md`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/.agents/notes/implemented/bug-fix/2026-09-19-declared-session-attachment-carriers.md)
 
-### DSH-0.1.7-RC1-06 · Remote gains duplex/binary transfer and workspace reads move to `readBytes`
+### DSH-0.1.7-J1-06 · Remote gains duplex/binary transfer and workspace reads move to `readBytes`
 
 - **Type**: breaking
 - **Applies to**: authors of `@Remote({ mode: 'stream' })` methods, and plugins calling the
@@ -206,7 +219,7 @@ verifiedAt: 2026-09-23
   `{ offset, data, eof }`; sending past `streamInboxBytes` fails with `gateway/uplink-overflow`.
 - **Source**: [rc.1 `packages/api/workspace-files/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/api/workspace-files/src/index.ts) · [rc.1 `packages/api/gateway/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/api/gateway/src/index.ts) · [rc.1 `.agents/notes/implemented/architecture/2026-09-19-remote-duplex-stream.md`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/.agents/notes/implemented/architecture/2026-09-19-remote-duplex-stream.md)
 
-### DSH-0.1.7-RC1-07 · the Agent lifecycle is async — `agent/session-start` is removed and `agent/created` gains `source`
+### DSH-0.1.7-J1-07 · the Agent lifecycle is async — `agent/session-start` is removed and `agent/created` gains `source`
 
 - **Type**: breaking
 - **Applies to**: plugins subscribing to `agent/session-start` or `agent/created`, and callers of
@@ -225,7 +238,7 @@ verifiedAt: 2026-09-23
   sees `'startup'` on create and `'resume'` on resume.
 - **Source**: [rc.1 `packages/core/agent/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/core/agent/src/index.ts) · [rc.1 `packages/core/agent/src/runtime-types.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/core/agent/src/runtime-types.ts)
 
-### DSH-0.1.7-RC1-08 · the LLM `Message` is a role union and `createSystemMessage` loses its `plugin` argument
+### DSH-0.1.7-J1-08 · the LLM `Message` is a role union and `createSystemMessage` loses its `plugin` argument
 
 - **Type**: breaking
 - **Applies to**: plugins importing `Message`, `AssistantProvenance`, `createSystemMessage`, or
@@ -243,7 +256,7 @@ verifiedAt: 2026-09-23
 - **Verification**: compile a plugin that extends a concrete role and calls `createSystemMessage('x')`.
 - **Source**: [rc.1 `packages/llm/llm/src/message.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/llm/llm/src/message.ts) · [rc.1 `packages/llm/llm/src/types.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/llm/llm/src/types.ts)
 
-### DSH-0.1.7-RC1-09 · the official DeepSeek adapter is Messages-only (base URL moves to `/anthropic`)
+### DSH-0.1.7-J1-09 · the official DeepSeek adapter is Messages-only (base URL moves to `/anthropic`)
 
 - **Type**: breaking
 - **Applies to**: profiles/deployments that set `llm-deepseek.baseURL` or `protocol`, or import
@@ -263,7 +276,7 @@ verifiedAt: 2026-09-23
   throws; `grep` for the old exports.
 - **Source**: [rc.1 `packages/llm/llm-deepseek/src/config.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/llm/llm-deepseek/src/config.ts) · [rc.1 `packages/llm/llm-deepseek/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/llm/llm-deepseek/src/index.ts)
 
-### DSH-0.1.7-RC1-10 · the subagent runtime requires a Config, changes `listChildren`, and defaults depth to 1
+### DSH-0.1.7-J1-10 · the subagent runtime requires a Config, changes `listChildren`, and defaults depth to 1
 
 - **Type**: breaking
 - **Applies to**: plugins composing `dsh-subagent`, importing `SubagentCatalog`/`SubagentListEntry`,
@@ -281,7 +294,7 @@ verifiedAt: 2026-09-23
   is rejected under the default.
 - **Source**: [rc.1 `packages/subagent/subagent/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/subagent/subagent/src/index.ts) · [rc.1 `packages/subagent/tool-subagent/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/subagent/tool-subagent/src/index.ts)
 
-### DSH-0.1.7-RC1-11 · the E2B providers are removed; the POSIX SSH provider family replaces them
+### DSH-0.1.7-J1-11 · the E2B providers are removed; the POSIX SSH provider family replaces them
 
 - **Type**: breaking
 - **Applies to**: custom compositions that mounted `@deepseek-ai/dsh-e2b`, `dsh-fs-e2b`,
@@ -299,7 +312,7 @@ verifiedAt: 2026-09-23
   extends `SubprocessRuntime`.
 - **Source**: [rc.1 `packages/ssh/ssh/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/ssh/ssh/src/index.ts) · [rc.1 `packages/ssh/subprocess-ssh/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/ssh/subprocess-ssh/src/index.ts) · [rc.1 `.agents/notes/implemented/simplification/2026-09-11-remove-e2b-providers.md`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/.agents/notes/implemented/simplification/2026-09-11-remove-e2b-providers.md)
 
-### DSH-0.1.7-RC1-12 · Ralph is disabled in the shipped defaults
+### DSH-0.1.7-J1-12 · Ralph is disabled in the shipped defaults
 
 - **Type**: behavior
 - **Applies to**: profiles/presets that expect `ralph` in the default tool catalog.
@@ -316,7 +329,7 @@ verifiedAt: 2026-09-23
   `tool-ralph` disables it; `snapshots/session/ralph-loop` re-enables it under its own composition.
 - **Source**: [rc.1 `packages/bundle/base/cordis.patch.yml`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/bundle/base/cordis.patch.yml) · [rc.1 `.agents/notes/implemented/simplification/2026-09-12-ralph-off-in-shipped-defaults.md`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/.agents/notes/implemented/simplification/2026-09-12-ralph-off-in-shipped-defaults.md)
 
-### DSH-0.1.7-RC1-13 · `spill-policy` becomes token-budgeted (`maxInlineBytes` → `maxInlineTokens`)
+### DSH-0.1.7-J1-13 · `spill-policy` becomes token-budgeted (`maxInlineBytes` → `maxInlineTokens`)
 
 - **Type**: breaking
 - **Applies to**: compositions setting `@deepseek-ai/dsh-spill-policy` `maxInlineBytes`, and any tool
@@ -329,10 +342,11 @@ verifiedAt: 2026-09-23
 - **Migration recipe**: `maxInlineBytes: <bytes>` → `maxInlineTokens: <tokens>`; the shipped baseline
   moved `50000` → `12500`. Omission still disables the policy.
 - **Verification**: an invalid value reports `spill-policy: maxInlineTokens must be a non-negative
-  integer`; a large tool result is replaced with head/tail plus a locator.
+  integer`; a large tool result is replaced with head/tail plus a locator. The per-edge card is
+  DSH-0.1.7-A2-01 in [v0.1.7-alpha.2.md](v0.1.7-alpha.2.md).
 - **Source**: [rc.1 `packages/spill/spill-policy/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/spill/spill-policy/src/index.ts) · [rc.1 `packages/bundle/base/cordis.patch.yml`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/bundle/base/cordis.patch.yml)
 
-### DSH-0.1.7-RC1-14 · `tool-cordis` is narrowed to read-only inspection
+### DSH-0.1.7-J1-14 · `tool-cordis` is narrowed to read-only inspection
 
 - **Type**: breaking
 - **Applies to**: profiles/agent presets relying on `cordis_define`, `cordis_run`, `cordis_stop`,
@@ -350,7 +364,7 @@ verifiedAt: 2026-09-23
 - **Verification**: `packages/extensions/tool-cordis/tests/config.spec.ts` and `host.spec.ts`.
 - **Source**: [rc.1 `packages/extensions/tool-cordis/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/extensions/tool-cordis/src/index.ts) · [rc.1 `packages/extensions/tool-cordis/src/host.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/extensions/tool-cordis/src/host.ts)
 
-### DSH-0.1.7-RC1-15 · the bundle manifest takes ordered patch lists and drops several `dsh.*` fields
+### DSH-0.1.7-J1-15 · the bundle manifest takes ordered patch lists and drops several `dsh.*` fields
 
 - **Type**: breaking
 - **Applies to**: every bundle package's `package.json.dsh`, and profile manifests.
@@ -368,7 +382,7 @@ verifiedAt: 2026-09-23
   the bundle and confirm each preset row mounts.
 - **Source**: [rc.1 `packages/util/package-manifest/src/types.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/util/package-manifest/src/types.ts) · [rc.1 `packages/bundle/web-app/package.json`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/bundle/web-app/package.json) · [rc.1 `packages/boot/app-boot/src/profile.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/boot/app-boot/src/profile.ts)
 
-### DSH-0.1.7-RC1-16 · package rename ledger for the whole corridor
+### DSH-0.1.7-J1-16 · package rename ledger for the whole corridor
 
 - **Type**: breaking
 - **Applies to**: any plugin dependency list or composition referring to the old package names.
@@ -385,7 +399,7 @@ verifiedAt: 2026-09-23
 - **Verification**: `pnpm why <new-name>` resolves and a grep for the old names comes back empty.
 - **Source**: [rc.1 `packages/bundle/base/package.json`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/bundle/base/package.json) · [rc.1 `packages/bundle/web-app/package.json`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/bundle/web-app/package.json)
 
-### DSH-0.1.7-RC1-17 · new CLI/Headless surfaces
+### DSH-0.1.7-J1-17 · new CLI/Headless surfaces
 
 - **Type**: capability
 - **Applies to**: scripts/automation driving `dsh`, and CI using the headless profile.
@@ -402,7 +416,7 @@ verifiedAt: 2026-09-23
   runs and `--json` emits `session` … `final`.
 - **Source**: [rc.1 `apps/cli/src/args.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/apps/cli/src/args.ts) · [rc.1 `packages/bundle/headless/README.md`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/bundle/headless/README.md)
 
-### DSH-0.1.7-RC1-18 · Agent Team becomes one bundle and the old subagent creation tools are off inside it
+### DSH-0.1.7-J1-18 · Agent Team becomes one bundle and the old subagent creation tools are off inside it
 
 - **Type**: breaking
 - **Applies to**: profiles whose `dsh.profile.bundles` selects
@@ -421,7 +435,7 @@ verifiedAt: 2026-09-23
   bundle and confirm the Team controls appear.
 - **Source**: [rc.1 `packages/experimental/agent-team-profile/cordis.patch.yml`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/experimental/agent-team-profile/cordis.patch.yml) · [rc.1 `.agents/notes/implemented/architecture/2026-09-18-agent-teams-single-bundle.md`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/.agents/notes/implemented/architecture/2026-09-18-agent-teams-single-bundle.md)
 
-### DSH-0.1.7-RC1-19 · experimental speech-to-text and browser/computer-use registries
+### DSH-0.1.7-J1-19 · experimental speech-to-text and browser/computer-use registries
 
 - **Type**: capability
 - **Applies to**: plugins registering a speech provider, a browser provider, or a computer-use provider.
@@ -439,7 +453,7 @@ verifiedAt: 2026-09-23
 - **Verification**: registering a second provider fails; a transcription stream follows a signal.
 - **Source**: [rc.1 `packages/experimental/speech-to-text/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/experimental/speech-to-text/src/index.ts) · [rc.1 `packages/browser-use/browser-use/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/browser-use/browser-use/src/index.ts) · [rc.1 `.agents/notes/implemented/architecture/2026-09-16-experimental-voice-input.md`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/.agents/notes/implemented/architecture/2026-09-16-experimental-voice-input.md)
 
-### DSH-0.1.7-RC1-20 · the bundled LibreOffice runtime and the packaged-app Node requirement
+### DSH-0.1.7-J1-20 · the bundled LibreOffice runtime and the packaged-app Node requirement
 
 - **Type**: capability
 - **Applies to**: plugins/deployments rendering Office documents, and Electron/SEA-packaged apps.
@@ -457,7 +471,7 @@ verifiedAt: 2026-09-23
   fails with the explicit error until `node` is supplied.
 - **Source**: [rc.1 `packages/skill/skill-office/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/skill/skill-office/src/index.ts) · [rc.1 `packages/document/office-to-pdf/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/document/office-to-pdf/src/index.ts) · [rc.1 `pnpm-workspace.yaml`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/pnpm-workspace.yaml)
 
-### DSH-0.1.7-RC1-21 · MCP resources, URI templates and tool pagination
+### DSH-0.1.7-J1-21 · MCP resources, URI templates and tool pagination
 
 - **Type**: capability
 - **Applies to**: MCP client consumers and plugins exposing resources.
@@ -472,7 +486,7 @@ verifiedAt: 2026-09-23
   followed to the end.
 - **Source**: [rc.1 `packages/mcp/mcp-resources/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/mcp/mcp-resources/src/index.ts) · [rc.1 `packages/mcp/mcp-client/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/mcp/mcp-client/src/index.ts)
 
-### DSH-0.1.7-RC1-22 · the DeepSeek session-log upload now defaults to on
+### DSH-0.1.7-J1-22 · the DeepSeek session-log upload now defaults to on
 
 - **Type**: privacy
 - **Applies to**: profiles composing `@deepseek-ai/dsh-session-log-deepseek` that relied on the
@@ -485,7 +499,7 @@ verifiedAt: 2026-09-23
 - **Verification**: inspect the `dsh_session_log` field on an official request under default config.
 - **Source**: [rc.1 `packages/session/session-log-deepseek/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/session/session-log-deepseek/src/index.ts) · [rc.1 `.agents/notes/implemented/architecture/2026-09-14-session-log-upload-default.md`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/.agents/notes/implemented/architecture/2026-09-14-session-log-upload-default.md)
 
-### DSH-0.1.7-RC1-23 · `tool.call.toolview` gains a `preparing` phase
+### DSH-0.1.7-J1-23 · `tool.call.toolview` gains a `preparing` phase
 
 - **Type**: breaking
 - **Applies to**: any Web Client plugin registering a keyed `tool.call.toolview` view, importing
@@ -506,7 +520,7 @@ verifiedAt: 2026-09-23
   `[data-state="preparing"]`.
 - **Source**: [rc.1 `packages/client/ui-tool/src/client/contract/slots.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-tool/src/client/contract/slots.ts) · [rc.1 `packages/client/ui-conversation/src/client/contract/records.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-conversation/src/client/contract/records.ts) · [rc.1 `.agents/notes/implemented/architecture/2026-09-22-tool-call-three-phases.md`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/.agents/notes/implemented/architecture/2026-09-22-tool-call-three-phases.md)
 
-### DSH-0.1.7-RC1-24 · the chat-node hook context is reshaped and `turnTail` becomes a list
+### DSH-0.1.7-J1-24 · the chat-node hook context is reshaped and `turnTail` becomes a list
 
 - **Type**: breaking
 - **Applies to**: plugins registering keyed `conversation.chat.node` renderers or
@@ -525,7 +539,7 @@ verifiedAt: 2026-09-23
   deliverables; the disclosure hook resets on turn change.
 - **Source**: [rc.1 `packages/client/ui-chat/src/client/contract/slots.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-chat/src/client/contract/slots.ts) · [rc.1 `packages/client/ui-chat/src/client/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-chat/src/client/index.ts)
 
-### DSH-0.1.7-RC1-25 · the transcript mode becomes a presentation policy channel
+### DSH-0.1.7-J1-25 · the transcript mode becomes a presentation policy channel
 
 - **Type**: breaking
 - **Applies to**: plugins importing `TranscriptViewMode`, reading `ChatViewInjected.hooks.transcriptView`,
@@ -544,7 +558,7 @@ verifiedAt: 2026-09-23
   the grouped container mounted.
 - **Source**: [rc.1 `packages/client/ui-chat/src/client/presentation-policy.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-chat/src/client/presentation-policy.ts) · [rc.1 `packages/client/ui-chat/src/chat-settings.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-chat/src/chat-settings.ts) · [rc.1 `packages/client/ui-chat/src/client/contract/slots.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-chat/src/client/contract/slots.ts)
 
-### DSH-0.1.7-RC1-26 · product icons rename from pixel suffixes to weight names
+### DSH-0.1.7-J1-26 · product icons rename from pixel suffixes to weight names
 
 - **Type**: breaking
 - **Applies to**: every plugin importing icons (or `ReferenceIcon`/`LinkIcon`/`PermissionIcon`) from
@@ -562,10 +576,12 @@ verifiedAt: 2026-09-23
   `PermissionIconWorkspaceWriteRegular/Medium`). Plugin artwork is now
   `PluginArtworkTerminal|Loop|Subagent|Search|Default`.
 - **Verification**: a grep for `Outline16`/`Outline14` in your plugin is empty; a build importing the
-  new names succeeds.
+  new names succeeds. The per-edge card DSH-0.1.7-A1-01 in [v0.1.7-alpha.1.md](v0.1.7-alpha.1.md)
+  covers the same rename with first-hand fleet evidence (a missing export vanishes the whole slot
+  entry via React #130) and the driven-browser assertions to run.
 - **Source**: [rc.1 `packages/client/ui-primitives/src/icons/index.tsx`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-primitives/src/icons/index.tsx) · [rc.1 `packages/client/ui-primitives/src/PermissionIcon.tsx`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-primitives/src/PermissionIcon.tsx) · [rc.1 `.agents/notes/implemented/architecture/2026-09-16-size-neutral-product-icon-weights.md`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/.agents/notes/implemented/architecture/2026-09-16-size-neutral-product-icon-weights.md)
 
-### DSH-0.1.7-RC1-27 · the client settings transport renames `settingsScope` → `configForms`
+### DSH-0.1.7-J1-27 · the client settings transport renames `settingsScope` → `configForms`
 
 - **Type**: breaking
 - **Applies to**: every browser plugin that persisted preferences via
@@ -581,12 +597,12 @@ verifiedAt: 2026-09-23
   (for shipped plugins the entry id equals the old namespace string); `SettingsScope<T>` →
   `ConfigForm<T>`. Pages editing another plugin's namespace use
   `ctx.configForms.whileServed(namespaces, register)`. Host-side, drop `ctx.settings.register` and
-  declare `.volatile()` Config fields (see DSH-0.1.7-RC1-04).
+  declare `.volatile()` Config fields (see DSH-0.1.7-J1-04).
 - **Verification**: a grep for `settingsScope` in the plugin is empty; `form.set(...)` resolves `true`
   on Host accept and `false` on refusal.
 - **Source**: [rc.1 `packages/client/ui-settings/src/client/config-form.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-settings/src/client/config-form.ts) · [rc.1 `packages/client/ui-settings/src/client/config-form-types.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-settings/src/client/config-form-types.ts)
 
-### DSH-0.1.7-RC1-28 · the right-sidebar tab contract (retained tabs, guide entries, placement)
+### DSH-0.1.7-J1-28 · the right-sidebar tab contract (retained tabs, guide entries, placement)
 
 - **Type**: breaking
 - **Applies to**: plugins registering `sidebar.right.pane.tab` types or `rightbar.session` bodies;
@@ -607,7 +623,7 @@ verifiedAt: 2026-09-23
   shipped; a retained body survives tab presentation changes.
 - **Source**: [rc.1 `packages/client/ui-sidebar-right/src/client/contract/slots.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-sidebar-right/src/client/contract/slots.ts) · [rc.1 `packages/client/ui-sidebar-right/src/client/tab-registry.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-sidebar-right/src/client/tab-registry.ts)
 
-### DSH-0.1.7-RC1-29 · the new sidebar surfaces ship as packages
+### DSH-0.1.7-J1-29 · the new sidebar surfaces ship as packages
 
 - **Type**: capability
 - **Applies to**: plugins launching terminals/browsers, opening subagent chats, or extending previews.
@@ -626,7 +642,7 @@ verifiedAt: 2026-09-23
 - **Verification**: open each sidebar type; the terminal body survives tab presentation changes.
 - **Source**: [rc.1 `packages/client/ui-sidebar-terminal/src/client/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-sidebar-terminal/src/client/index.ts) · [rc.1 `packages/client/ui-sidebar-documentpreview/src/client/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-sidebar-documentpreview/src/client/index.ts)
 
-### DSH-0.1.7-RC1-30 · component factories in the slot system
+### DSH-0.1.7-J1-30 · component factories in the slot system
 
 - **Type**: capability
 - **Applies to**: plugins that publish a reusable UI assembly with caller-selected local components.
@@ -643,7 +659,7 @@ verifiedAt: 2026-09-23
   a local slot override.
 - **Source**: [rc.1 `packages/client/ui-slots/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-slots/src/index.ts) · [rc.1 `packages/client/ui-renderer/src/client/registry.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-renderer/src/client/registry.ts) · [rc.1 `.agents/notes/implemented/architecture/2026-09-10-component-factories-and-local-slots.md`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/.agents/notes/implemented/architecture/2026-09-10-component-factories-and-local-slots.md)
 
-### DSH-0.1.7-RC1-31 · the plugin-manager page, its slots and the `pluginManager` Remote
+### DSH-0.1.7-J1-31 · the plugin-manager page, its slots and the `pluginManager` Remote
 
 - **Type**: capability
 - **Applies to**: plugins wanting a configuration page, an official-plugin card, or detail-page
@@ -664,7 +680,7 @@ verifiedAt: 2026-09-23
   `packages/client/ui-plugin-manager/tests/*`.
 - **Source**: [rc.1 `packages/client/ui-plugin-manager/src/client/slot-contract.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-plugin-manager/src/client/slot-contract.ts) · [rc.1 `packages/api/remotes/src/client/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/api/remotes/src/client/index.ts) · [rc.1 `packages/boot/plugin-manager/src/types.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/boot/plugin-manager/src/types.ts)
 
-### DSH-0.1.7-RC1-32 · `ModelDirectory.select` returns a `RemoteResult`
+### DSH-0.1.7-J1-32 · `ModelDirectory.select` returns a `RemoteResult`
 
 - **Type**: breaking
 - **Applies to**: importers of `@deepseek-ai/dsh-client-ui-model-selection/client`
@@ -680,7 +696,7 @@ verifiedAt: 2026-09-23
 - **Verification**: `packages/client/ui-model-selection/tests/model-select.client.spec.tsx`.
 - **Source**: [rc.1 `packages/client/ui-model-selection/src/client/directory.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-model-selection/src/client/directory.ts) · [rc.1 `packages/client/ui-model-selection/src/client/slots.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-model-selection/src/client/slots.ts)
 
-### DSH-0.1.7-RC1-33 · session-row actions become slot lists and `WorkspaceBrowserInjected` changes
+### DSH-0.1.7-J1-33 · session-row actions become slot lists and `WorkspaceBrowserInjected` changes
 
 - **Type**: breaking
 - **Applies to**: plugins adding Session-row actions or importing `WorkspaceBrowserInjected`;
