@@ -5,7 +5,7 @@ from: dsh-v0.1.5-rc.2
 to: dsh-v0.1.7-rc.1
 status: draft
 coverage: curated
-cardCount: 33
+cardCount: 34
 idPrefix: DSH-0.1.7-J1
 verifiedAt: 2026-09-23
 ---
@@ -70,6 +70,7 @@ verifiedAt: 2026-09-23
 - DSH-0.1.7-J1-31 · capability: the plugin-manager page, its slots and the `pluginManager` Remote
 - DSH-0.1.7-J1-32 · breaking: `ModelDirectory.select` returns a `RemoteResult`
 - DSH-0.1.7-J1-33 · breaking: session-row actions become slot lists and `WorkspaceBrowserInjected` changes
+- DSH-0.1.7-J1-34 · capability: two new settings-page seats — `settings.launcher` and `settings.models.sign-in`
 
 ---
 
@@ -713,3 +714,27 @@ verifiedAt: 2026-09-23
   (`ui-primitives` exports `MenuItemButton`). Surfaces raised by actions live in `shell.overlay`.
 - **Verification**: `packages/client/ui-workspace/tests/session-actions.client.spec.tsx`.
 - **Source**: [rc.1 `packages/client/ui-workspace/src/client/contract/slots.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-workspace/src/client/contract/slots.ts) · [rc.1 `packages/client/ui-workspace/src/client/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-workspace/src/client/index.ts) · [rc.1 `.agents/notes/implemented/architecture/2026-09-17-session-row-menu-actions-slot.md`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/.agents/notes/implemented/architecture/2026-09-17-session-row-menu-actions-slot.md)
+
+### DSH-0.1.7-J1-34 · two new settings-page seats: `settings.launcher` and `settings.models.sign-in`
+
+- **Type**: capability
+- **Applies to**: plugins extending the settings panel's opening surface (sidebar account
+  launcher) or the Models settings credential flow (sign-in step).
+- **Touchpoints**: #5 for the seats.
+- **Action level**: optional
+- **Symptoms**: n/a (new). Both seats are optional by contract and render nothing without a
+  registrant.
+- **Migration recipe**: `settings.launcher` — root-scoped `single` seat typed in the `ui-settings`
+  slot contract; the rendering site passes `{ wide, openSettings(), openOnboarding(id) }` and the
+  contribution is the sidebar account launcher that opens the shell-owned settings panel (the
+  settings shell declares the seat in its children). `settings.models.sign-in` — root-scoped
+  `single` seat in `ui-settings-models`; the site passes `{ complete(), useApiKey() }` and the
+  contribution renders the optional account login choice before the credential editor. Register
+  through `ctx.slots.inject(name, () => ctx.slots.register(...))` so the contribution waits on the
+  declaring plugin's slot declaration (cross-package apply order is unconstrained). Both arrived
+  with the DeepSeek account sign-in integration inside this corridor (first tagged
+  `dsh-v0.1.7-alpha.1`).
+- **Verification**: `packages/client/ui-settings-general/tests/shell.client.spec.ts` covers the
+  launcher seat; in a driven browser, register a stub into each seat and assert it renders.
+- **Source**: [rc.1 `packages/client/ui-settings/src/client/contract/slots.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-settings/src/client/contract/slots.ts) · [rc.1 `packages/client/ui-settings-models/src/client/slot-contract.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-settings-models/src/client/slot-contract.ts) · [introducing commit 048297321a](https://github.com/deepseek-ai/deepseek-harness/commit/048297321ad1364557308d360b8e535978ec8876)
+- **See also**: DSH-0.1.7-A1-11 in the per-edge file [v0.1.7-alpha.1.md](v0.1.7-alpha.1.md).
