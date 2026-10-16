@@ -30,7 +30,7 @@ verifiedAt: 2026-10-16
 
 ## Contents
 
-- DSH-0.2.1-J1-01 · breaking: DSH plugin compatibility now reads `engines.dsh` first, renames `peers` → `requirements`, and the prerelease-peer trap widens
+- DSH-0.2.1-J1-01 · breaking: DSH plugin compatibility now reads `engines.dsh` first, renames `peers` → `requirements`, and evaluates ranges with `includePrerelease`
 - DSH-0.2.1-J1-02 · breaking: the runtime-invariants system is removed wholesale (`@deepseek-ai/dsh-invariants`, 38 `./invariant` subpaths, `ctx.invariants`)
 - DSH-0.2.1-J1-03 · breaking: the `webRuntime` service is replaced by `webStartup` (`trustedHosts` moves to `--trusted-host`); the `connection` row config survives
 - DSH-0.2.1-J1-04 · breaking: the `{{cwd}}` prompt variable is removed (persona/suffix fail at first model request)
@@ -53,7 +53,7 @@ verifiedAt: 2026-10-16
 
 ---
 
-### DSH-0.2.1-J1-01 · DSH plugin compatibility now reads `engines.dsh` first, renames `peers` → `requirements`, and the prerelease-peer trap widens
+### DSH-0.2.1-J1-01 · DSH plugin compatibility now reads `engines.dsh` first, renames `peers` → `requirements`, and evaluates ranges with `includePrerelease`
 
 - **Type**: breaking
 - **Applies to**: every plugin whose `package.json` declares `@deepseek-ai/dsh-*`, `@deepseek-ai/cordis`,
@@ -63,23 +63,33 @@ verifiedAt: 2026-10-16
 - **Action level**: required
 - **Symptoms**: unmet requirements block **installation and activation** (`IncompatiblePlugin`,
   `code: 'incompatible-version'`); the rejection record's `peers` field is now `requirements`.
-  A prerelease host (`0.2.1-alpha.5`) is **not** satisfied by `^0.2.0-rc.1`-style floors: npm semver
-  admits a prerelease only when a comparator carries the same `[major, minor, patch]` tuple, so
-  `^0.2.0-rc.1` refuses `0.2.1-alpha.5` even though `0.2.1-alpha.5 > 0.2.0-rc.1`. The same trap now
-  also fires on the vendored peers: the host runs `@deepseek-ai/cordis@4.0.5-alpha.2`,
-  `schemastery@3.18.5-alpha.2`, `cosmokit@1.8.6-alpha.2`, and an old `^4.0.1` / `^3.18.4` floor
-  refuses each prerelease.
+  **Evaluation semantics changed in this very corridor**: rc.2 evaluated ranges with default
+  semver (where `^0.2.0-rc.1` refuses the `0.2.1-alpha.5` prerelease — the 0.1.7-era trap), but
+  alpha.5's `plugin-compatibility.ts` calls
+  `semver.satisfies(runtimeVersion, range, { includePrerelease: true })`, so plain floors
+  (`^0.2.0-rc.1`, `^4.0.4`, open `>=…`) now **admit** the prerelease host at the activation gate.
+  The vendored peers also moved to `4.0.5-alpha.2`/`3.18.5-alpha.2`/`1.8.6-alpha.2`.
 - **Migration recipe**: when `engines.dsh` is present it decides **alone** (the `@deepseek-ai/dsh`
   peer range is ignored; `workspace:` is not a legal value there). Otherwise bump every DSH peer:
-  `@deepseek-ai/dsh-*` → `^0.2.1-alpha.5` (admits `0.2.1` final and later `0.2.x`), vendored peers
-  mirror the official published pins — `@deepseek-ai/cordis` `~4.0.5-alpha.2`,
-  `@deepseek-ai/schemastery` `~3.18.5-alpha.2`, `@deepseek-ai/cosmokit` `~1.8.6-alpha.2`
-  (official packages pin dsh peers exactly, e.g. `0.2.1-alpha.5`). Exact-version exemptions
-  (`dsh plugin --profile <p> allow-version <pkg>@<ver> --dsh-version <ver> --accept-risk`) still
-  exist but a correct range is always preferable.
-- **Verification**: `pnpm peers check` in the profile stops listing the plugin under unmet
-  `@deepseek-ai/dsh-*` requirements; the plugin's rows appear enabled in `dsh plugin --profile <p> list`.
-- **Source**: [alpha.5 `packages/boot/plugin-manager/src/types.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.1-alpha.5/packages/boot/plugin-manager/src/types.ts) · [alpha.5 `packages/boot/plugin-manager/src/operations.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.1-alpha.5/packages/boot/plugin-manager/src/operations.ts) · npm: `npm view @deepseek-ai/dsh-tools@0.2.1-alpha.5 peerDependencies`
+  `@deepseek-ai/dsh-*` → `^0.2.1-alpha.5`, vendored peers mirror the official published pins —
+  `@deepseek-ai/cordis` `~4.0.5-alpha.2`, `@deepseek-ai/schemastery` `~3.18.5-alpha.2`,
+  `@deepseek-ai/cosmokit` `~1.8.6-alpha.2` (official packages pin dsh peers exactly, e.g.
+  `0.2.1-alpha.5`). The bump is still the honest declaration even though the activation gate
+  forgives stale floors: registry/pnpm resolvers use default semver (peer warnings,
+  `dsh plugin add` lookups), and the next final release re-tightens everything.
+  Exact-version exemptions (`dsh plugin --profile <p> allow-version <pkg>@<ver> --dsh-version
+  <ver> --accept-risk`) still exist but a correct range is always preferable.
+- **Verification**: the plugin's rows appear enabled in `dsh plugin --profile <p> list`;
+  `pnpm peers check` noise drops after the bump.
+- **Source**: [alpha.5 `packages/boot/app-boot/src/plugin-compatibility.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.1-alpha.5/packages/boot/app-boot/src/plugin-compatibility.ts) (line 52: `semver.satisfies(runtimeVersion, range, { includePrerelease: true })`) · [alpha.5 `packages/boot/plugin-manager/src/types.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.1-alpha.5/packages/boot/plugin-manager/src/types.ts) · npm: `npm view @deepseek-ai/dsh-tools@0.2.1-alpha.5 peerDependencies`
+- **Field note** (2026-10-17, fleet): the `includePrerelease` flip means stale third-party
+  floors **do not** get rows disabled on an alpha host — the 0.1.7-era "prerelease trap blocks
+  activation" behavior is gone in this corridor. What actually kills unadapted third-party
+  plugins is the **runtime surface**: e.g. a row whose `inject` lists the removed `webRuntime`
+  service stays PENDING forever (the plugin never activates — no crash, the feature just
+  vanishes), and terminal-relay code calling the deleted `follow`/`write` remotes fails on use.
+  Audit third-party plugins by scanning their built `lib/` for removed symbols, not by their
+  declared ranges.
 - **Field note** (2026-10-16, Windows, 28-plugin fleet): a line-oriented edit of the
   `peerDependencies` block only (leave `devDependencies` untouched — local `@deepseek-ai` dev deps
   resolve through junctions, not the registry) upgraded 29 manifests without breaking any
