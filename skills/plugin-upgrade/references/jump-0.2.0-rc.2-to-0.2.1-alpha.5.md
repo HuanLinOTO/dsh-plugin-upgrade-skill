@@ -267,12 +267,22 @@ verifiedAt: 2026-10-16
   `useToolCallArgumentsPartial`, not only the type `UseToolCallArgumentsPartial`); user-echo rows
   render references as chips with working activation.
 - **Source**: [alpha.5 `packages/client/ui-primitives/src/user-text.tsx`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.1-alpha.5/packages/client/ui-primitives/src/user-text.tsx) · [alpha.5 `packages/client/ui-tool/src/client/contract/slots.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.1-alpha.5/packages/client/ui-tool/src/client/contract/slots.ts)
-- **Field note** (2026-10-16, fleet): for display-only echo text (no activation behavior), a
-  plain `UserTextRun` plus non-interactive `ReferenceChip`s is a faithful drop-in; do not
-  re-implement the old parser to "keep chips inline" — the new contract wants resolved JSON data.
-  Dropping the raw-prefix hook is **user-visible**: a preparing card that used to show a JSON
-  prefix now shows the summarized streaming argument. Also scan built artifacts — a stale
-  `lib/` still carries removed symbols, so grep residue **after** `pnpm run build`, not before.
+- **Field note** (2026-10-17, fleet): **image rendering moved to a factory slot and the official
+  side reclaimed slot ownership** — rc.2 `ChatNodeOwnerProps` carried `openSkill`/`loadImage`/
+  `renderMessageImages`; alpha.4 leaves `openFile`/`loadImage`/`inspectCall`/`forkAt`/
+  `fileMentions`, images render through the factory slot `conversation.chat.user.images` +
+  `renderFactorySlot`, and the official `UserMessageNodeView` signature is now
+  `{ node, renderFactorySlot, loadImage, t }`. A third-party shadow renderer that declared the
+  `user.images` children itself or drew the bubble from the old owner props is **silently never
+  invoked** — the exact failure behind "message action buttons stopped rendering" in a fleet
+  plugin: zero type errors, zero load errors, the row just disappears. Port to the factory-slot
+  consumption shape (upstream `ui-chat` is the reference) instead of re-declaring the slot.
+  For display-only echo text (no activation behavior), a plain `UserTextRun` plus non-interactive
+  `ReferenceChip`s is a faithful drop-in; do not re-implement the old parser to "keep chips
+  inline" — the new contract wants resolved JSON data. Dropping the raw-prefix hook is
+  **user-visible**: a preparing card that used to show a JSON prefix now shows the summarized
+  streaming argument. Also scan built artifacts — a stale `lib/` still carries removed symbols,
+  so grep residue **after** `pnpm run build`, not before.
 
 ### DSH-0.2.1-J1-09 · `TerminalBlockLabels` gains the required `commandLine(line)` member
 
@@ -581,6 +591,26 @@ verifiedAt: 2026-10-16
      optional peers (jsdom's `@emnapi/*`); filter before concluding the `@deepseek-ai` face is
      dirty. When a fix spans two cards (vendored-as-`dependencies` needs **both** the J1-01 pin
      recipe and the J1-18 link sweep), apply both.
+  19. **Vendored-source monorepos** are a third adaptation topology (beyond junction/registry):
+     some third-party repos vendor the whole dsh tree with a patch series and a version pin
+     (e.g. `mise.toml DEEPSEEK_HARNESS_VERSION`). Their upgrade is a vendor-sync ladder — bump
+     the pin, re-run sync→patch→vendor→prebuild, and expect Windows-specific generator bugs
+     (path-separator literals like `/packages/` splitting, backslash keys) and an `oxfmt .`
+     pass at the end because vendored copies arrive unformatted. **Do not trust a Windows-built
+     dist from such a repo**: one fleet repo's tsdown plugin on win32 silently dropped relative
+     source modules from bundles (entry facades importing `./x.ts` files that were never
+     emitted) and resolved `inline` targets to absolute backslash paths — every multi-module
+     package's dist was unloadable while `build` exited 0. **Installing their unpublished
+     adapted build** into a profile: prefer a **Linux CI artifact** (push a `workflow_dispatch`
+     pack workflow to your fork — token `workflow` scope suffices) over two alternatives that
+     bite: `pnpm pack` locally (broken dist on win32) and the maintainer's GitHub Packages feed
+     (`npm.pkg.github.com` requires a `read:packages` token even for readable packages; the
+     usual `gh auth token` lacks it). Reference all sibling packages as `file:` tarballs
+     **and add matching `pnpm.overrides`** — pnpm otherwise queries the registry for the
+     tarballs' internal exact-version deps (which do not exist there) and fails. Note some
+     alpha.5 client packages **undeclare new third-party runtime deps** their `lib`
+     bare-imports (`simple-icons`, `zod`, `picomatch`, `diff`) — a flat-tarball dev tree must
+     add them to the plugin's devDependencies explicitly.
 
 ---
 
@@ -624,7 +654,16 @@ verifiedAt: 2026-10-16
   name mappings, SlotMap cascades) — the fix/rerun loop is the norm. And remember the corridor
   cuts both ways: a plugin that last validated against an **older** baseline may carry drift
   from intermediate jumps (e.g. `SessionListState.current` left in rc.1); the jump's `from`
-  version decides which earlier card sets you must also read.
+  version decides which earlier card sets you must also read. **Declaration merging is
+  copy-sensitive**: a `declare module` augmentation compiled against a source-junctioned d.ts
+  never merges with a consumer reading a tarball/registry d.ts of the same package — SlotMap
+  entries collapse (`PropsRuntime<'…'>` unsatisfied) or lose members. The augmentation provider
+  and every consumer must resolve the **same physical copy**. **Source junctions can also
+  dual-instantiate React**: a client package junctioned from the host source tree resolves
+  `react` through the host tree's `node_modules` (e.g. 18.3.1) while the plugin's tests resolve
+  their store copy (18.2.0) — every hook call then crashes with `Cannot read properties of null
+  (reading 'useMemo')` across the whole render suite. For react-carrying client packages,
+  install from npm tarballs (the CI registry topology) instead of junctioning source.
 - **Field note** (2026-10-16, fleet, service stand-ins): **`implements` cannot catch parameter
   widening.** A plugin that mirrors an official service interface with its own stand-in
   (`implements UiWorkspace` …) keeps typechecking green while silently **dropping new parameters**
