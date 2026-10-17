@@ -100,6 +100,13 @@ verifiedAt: 2026-10-16
   means floors-only work), but vendor-sync ladders and the host SOP still block on the git
   tag (`DEEPSEEK_HARNESS_VERSION` checks out `dsh-v${version}`). Keep a `git ls-remote --tags`
   watcher running and sequence host-upgrade → plugin-swap accordingly.
+- **Field note** (2026-10-17, fleet): **floor sweeps have escaped-regex blind spots**. Guard
+  specs pin versions inside regex literals (`/^\^0\.2\.1-alpha\.5$/` — backslash-escaped dots),
+  so a plain `grep '0.2.1-alpha.5'` misses them; also sweep `alpha\.`-style escaped forms
+  (`rg '0\\\.2\\\.1'`) and watch for pin points without a package prefix (e.g. an e2e helper's
+  `DSH_EXPECT_VERSION:-0.2.1-alpha.5` default — a whole-string replace leaves it behind while
+  the baseline spec asserts both lines). The version constants live in the repo's
+  baseline-guard spec family and its siblings; treat them as first-class floor surface.
 - **Field note** (2026-10-16, Windows, 28-plugin fleet): a line-oriented edit of the
   `peerDependencies` block only (leave `devDependencies` untouched — local `@deepseek-ai` dev deps
   resolve through junctions, not the registry) upgraded 29 manifests without breaking any
@@ -639,6 +646,16 @@ verifiedAt: 2026-10-16
      note). And **reinstalling same-version `file:` tarballs after rebuilding them**: pnpm pins the
      old integrity in `pnpm-lock.yaml`, so `pnpm install --force` still reuses the stale copy —
      delete the lockfile (and `node_modules`) for a full re-resolution instead.
+  20. **Temp worktrees do not belong in Temp** (or any `AppData` path): one repo's
+      `bundledRgCandidates` derives `modulePath` from `process.argv[1]` (the vitest binary path)
+      and its spec asserts candidates never contain `AppData` — a worktree under
+      `C:\Users\...\AppData\Local\Temp` fails on directory-walk candidate collection alone. Put
+      scratch worktrees on a project drive (`D:\Projects\...`). Two more environment tools:
+      without corepack, align a repo's `packageManager` via `pnpm dlx pnpm@<ci-version> ...`
+      (the global pnpm acts only as the dlx carrier; the lockfile format does not drift). And
+      the cheapest regression test for a suspicious spec failure is a **control run on the
+      untouched main worktree** — if it fails there too, record it as pre-existing instead of
+      rolling back your own changes.
 
 ---
 
