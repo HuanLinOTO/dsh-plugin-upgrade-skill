@@ -283,6 +283,19 @@ verifiedAt: 2026-10-16
   **user-visible**: a preparing card that used to show a JSON prefix now shows the summarized
   streaming argument. Also scan built artifacts — a stale `lib/` still carries removed symbols,
   so grep residue **after** `pnpm run build`, not before.
+- **Field note** (2026-10-17, fleet): **the client row is served by `exports["./client"]`'s
+  `default` condition and must be the wrapped factory.** The host resolves that one condition
+  (string form or `{ default }`; `import`/`require`/`types` are ignored) and serves the file as
+  a **classic script**; it must be the `window.__ModuleLoader__.load({ id, factory:
+  (require) => … })` CJS registration script. A `default` pointing at the raw ESM library
+  (bare `import … from "react"` statements) is a guaranteed parse error: the row dies with
+  `loaded without registering "<pkg>" via __ModuleLoader__.load`, the batch URL first fails
+  and later shows as `skipped after an earlier failure of this bundle`, and the host-side boot
+  log stays **completely clean** — client-row breakage is invisible without a browser.
+  Bundler presets that derive the client factory's externals from `peerDependencies` will
+  bare-`require` any client-side shared library left in peers, demanding a module-table row
+  the library may no longer ship; move such libraries to devDependencies so the factory
+  bundles them (host faces are unaffected — their external rules read `dependencies`).
 
 ### DSH-0.2.1-J1-09 · `TerminalBlockLabels` gains the required `commandLine(line)` member
 
@@ -610,7 +623,12 @@ verifiedAt: 2026-10-16
      tarballs' internal exact-version deps (which do not exist there) and fails. Note some
      alpha.5 client packages **undeclare new third-party runtime deps** their `lib`
      bare-imports (`simple-icons`, `zod`, `picomatch`, `diff`) — a flat-tarball dev tree must
-     add them to the plugin's devDependencies explicitly.
+     add them to the plugin's devDependencies explicitly. **Verification must reach the browser**:
+     a clean host boot log (zero `failed to import`, zero pending) says nothing about client rows —
+     they load in the browser via `__ModuleLoader__.load` and fail silently host-side (J1-08 field
+     note). And **reinstalling same-version `file:` tarballs after rebuilding them**: pnpm pins the
+     old integrity in `pnpm-lock.yaml`, so `pnpm install --force` still reuses the stale copy —
+     delete the lockfile (and `node_modules`) for a full re-resolution instead.
 
 ---
 
