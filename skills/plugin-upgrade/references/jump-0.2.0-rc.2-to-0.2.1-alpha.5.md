@@ -90,6 +90,16 @@ verifiedAt: 2026-10-16
   vanishes), and terminal-relay code calling the deleted `follow`/`write` remotes fails on use.
   Audit third-party plugins by scanning their built `lib/` for removed symbols, not by their
   declared ranges.
+- **Field note** (2026-10-17, fleet): **0.2.1-rc.1 is a version-gate release** — the tag range
+  over alpha.5 is 4 commits: the version bump plus vendored finals (cordis 4.0.5, cosmokit
+  1.8.6, schemastery 3.18.5, loader/timer/logger-console finals). No API changes; the whole
+  adaptation is floors (`^0.2.1-alpha.5` → `^0.2.1-rc.1`, vendored alpha pins → finals) and
+  vendor re-sync. **npm lands before git**: the rc.1 packages appeared on the npm dist-tag
+  `next` hours before `dsh-v0.2.1-rc.1` was pushed — scope the delta fast with
+  `npm diff --diff=<pkg>@alpha.5 --diff=<pkg>@rc.1 --diff-name-only` (a version-only result
+  means floors-only work), but vendor-sync ladders and the host SOP still block on the git
+  tag (`DEEPSEEK_HARNESS_VERSION` checks out `dsh-v${version}`). Keep a `git ls-remote --tags`
+  watcher running and sequence host-upgrade → plugin-swap accordingly.
 - **Field note** (2026-10-16, Windows, 28-plugin fleet): a line-oriented edit of the
   `peerDependencies` block only (leave `devDependencies` untouched — local `@deepseek-ai` dev deps
   resolve through junctions, not the registry) upgraded 29 manifests without breaking any
