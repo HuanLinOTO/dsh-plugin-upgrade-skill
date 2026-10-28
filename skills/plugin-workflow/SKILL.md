@@ -146,6 +146,20 @@ Run stages in dependency order:
 
 Skip stages that are not selected unless an owning Skill makes them a hard gate for a later selected stage. In that case, add the gate to the ledger, explain why it is required, and obtain any needed confirmation before running it.
 
+## Fixes in third-party plugins go upstream
+
+When a diagnosed break lives in a plugin you do not own — for example a third-party
+bundle registering a slot the host reserves — fork-and-pull-request is the only route
+that respects the zero-source-patch boundary. Never ship the fix as an edit inside your
+profile's install tree: record it as swept-away residue with reapplication material
+instead. If an open pull request branch already comes from your own fork, append the fix
+commit to that same branch rather than opening a second PR. State the contract reference
+(the corridor card or the pinned host source that defines the violated contract) and the
+verification verdict on the real host in the PR discussion, so the maintainer can
+reproduce the diagnosis (first-hand fleet evidence 2026-09-25, `ds-harness-remote` PR
+#75: the `plugins.item` overreach found during the 0.1.7-rc.1 fleet migration, contract
+cited as DSH-0.1.7-A1-12, fixed as an appended commit on the existing fork branch).
+
 ## Preserve authorization across three boundaries
 
 Group planned actions by boundary and check each against the user's request and

@@ -57,6 +57,38 @@ For each plugin, assert in this order and record each result separately:
   bundle embeds the old version and the update chip advertises an update to
   the version the user already runs.
 
+### 4a. Batching a release wave across repositories (2026-09-25 fleet practice)
+
+One release unit per repository, always in this order — the unit is
+per-plugin, batching only sequences the units, it never merges them into a
+fleet commit:
+
+1. Verification trio (typecheck → tests → build), then a minor version bump.
+2. One release commit in that repository's own release-commit style —
+   prebuilt `lib/` plus `locale/` and `tests/` where the repository carries
+   them. **Exclude** environmental lockfile/workspace-residue hunks (pnpm 12
+   rewrites on this machine) unless the wave's diff contains a real
+   dependency change for that repository; they are not release content.
+3. Push, then npm publish with an explicit
+   `--registry https://registry.npmjs.org/` (auth walls and handling: the
+   `plugin-release` skill's publish-playbook, recipe R-14).
+
+**Decouple the git side from the npm side.** When npm hits a token or OTP
+wall mid-wave, finish every remaining git side (commit + push), mark the
+repository "npm pending" in the wave ledger, and batch-publish when an auth
+window opens — one shell loop over the pending list is enough. Never block
+the wave's git progress on the registry (first-hand fleet evidence
+2026-09-25: a wave pushed all repositories with npm marked pending, then
+cleared the backlog in one post-auth loop).
+
+**Pre-existing baseline failures do not stop the unit.** When a
+repository's tests fail for reasons that predate the wave, stash the wave's
+changes, re-run to prove the failure is not a regression, then release with
+the failure noted in the release record (first-hand fleet evidence
+2026-09-25: six failures in one repository traced to a drifted dsh source
+checkout, ten in another to win32 platform assumptions in upstream tests —
+both passed on that evidence).
+
 ## 5. Residue
 
 - Every temporary bundle instrumentation is reverted (grep the install tree

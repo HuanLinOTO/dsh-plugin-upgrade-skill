@@ -2,7 +2,8 @@
 
 > Load-on-demand operational recipes that carry on the decision flow of [../SKILL.md](../SKILL.md).
 > All conclusions come from two rounds of real publishing practice across the 17 plugin repositories
-> in the omdsh-dev organization (rc.2 → alpha.1 → alpha.2); where a scenario is not covered,
+> in the omdsh-dev organization (rc.2 → alpha.1 → alpha.2) and a 2026-09-25 fleet release wave
+> (npm-auth recipes, recipe R-14); where a scenario is not covered,
 > defer to primary sources and mark the item as pending confirmation.
 
 ## Unpublished cohort installation (recipe R-01)
@@ -104,6 +105,28 @@ The script only validates inputs and never publishes, tags, or queries the netwo
 | `git rebase --continue` blocks on the editor | Hangs without a TTY | Use `GIT_EDITOR=true` (or `core.editor=true`) before continuing |
 | Remote advanced and the push is rejected | `[ahead 1, behind 1]` | `git pull --rebase`, then re-push with `--force-with-lease`; never a bare `--force` |
 | 版本号在 build 之后才 bump | 客户端 bundle 把 package.json 的 version 在构建时内联为常量，发布出的自更新检查拿旧常量对比镜像最新 tag → 插件对自己报「有新版本」（真实案例：file-trace v0.3.7，amend 重建后强推三镜像修正） | 先 bump 再 build；提交前 grep 产物确认新常量在位（如 `grep 0.3.8 lib/client.js`），再打 tag 并逐镜像 `ls-remote` 核验 SHA |
+
+## npm publish auth in non-interactive terminals: expired token vs OTP vs git checks (recipe R-14)
+
+`pnpm publish` from a non-interactive terminal (an agent's shell, CI without env
+tokens) hits three distinct walls with deceptively similar error surfaces. Diagnose
+before retrying — only one of the three is retryable by the terminal itself
+(first-hand fleet evidence 2026-09-25, a fleet release wave on Windows; see the
+profile SOP in the repository's AGENTS.md for the operator-side checklist):
+
+| Wall | Symptom | Diagnosis | Handling |
+|---|---|---|---|
+| Expired/invalid token | scoped `pnpm publish` fails with **404 Not Found** — the registry masks "no permission for this package" as 404 | `npm whoami --registry https://registry.npmjs.org/` returns **401** | Not an OTP problem and not solvable non-interactively: a human runs `npm login --registry https://registry.npmjs.org/ --auth-type=web` to refresh `~/.npmrc`; then the pending publishes pass without code changes |
+| 2FA (OTP) | `ERR_PNPM_OTP_NON_INTERACTIVE`; pnpm prints a `www.npmjs.com/auth/cli/<uuid>` link and polls | — | Complete ONE publish in an interactive terminal (open the printed auth link). The same token then passes subsequent NON-interactive publishes for a short window (~5 minutes observed): batch the wave inside that window — six packages went out back-to-back in one window |
+| Dirty worktree | `ERR_PNPM_GIT_UNCLEAN` | `git status` shows environmental lockfile/workspace residue that is deliberately never committed | Retry once with `--no-git-checks` — safe when the release content itself is already committed (the residue is environmental, not content) |
+
+Two publish-loop facts confirmed by the same wave: **409 conflict means the version is
+already published — do not republish** (the same version can never be republished, and a
+retry cannot succeed); and `npm view <pkg>` (or the per-version registry endpoint) may
+404 for roughly 3 minutes **after a successful publish** — CDN metadata propagation, not a
+failed publish. Always pass `--registry https://registry.npmjs.org/` explicitly: a global
+pnpm config pointing at a read-only mirror turns every publish into 401, and the auth
+token in `~/.npmrc` is keyed to the official registry.
 
 ## Bump before build: client bundles bake version constants (recipe R-13)
 

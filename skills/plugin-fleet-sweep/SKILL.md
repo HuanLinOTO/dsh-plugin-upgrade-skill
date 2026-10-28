@@ -60,7 +60,11 @@ nothing about browser-engine and runtime-surface changes.
    host-generation-compatible approach when the fleet spans host versions,
    run the plugin's typecheck/tests/build, then release: version bump,
    changelog/compatibility-table row naming the host version range, commit,
-   tag, mirrors.
+   tag, mirrors. When many repositories release at once, batch these
+   per-plugin units per §4a of
+   [references/fleet-sweep-checklist.md](references/fleet-sweep-checklist.md)
+   — sequence the units, never merge them, and keep the git side moving
+   while npm is walled off.
 6. Re-run the live sweep after releases and record the final per-plugin
    verdict table (plugin, host versions supported, evidence).
 

@@ -66,5 +66,5 @@ The unpublished cohort (for example a cohort version that was never published to
 
 | File | Contents |
 |---|---|
-| [references/publish-playbook.md](references/publish-playbook.md) | Unpublished-cohort installation, dual-compatibility pattern, CI/release gates, real pitfall list, and rollback recipes |
+| [references/publish-playbook.md](references/publish-playbook.md) | Unpublished-cohort installation, dual-compatibility pattern, CI/release gates, real pitfall list, npm publish auth in non-interactive terminals (token vs OTP vs git checks), and rollback recipes |
 | [references/profile-dependency-management.md](references/profile-dependency-management.md) | Profile install/update recipes: github dependency lock caching, three-place sync on package rename, junction cleanup, and host-upgrade linkage |

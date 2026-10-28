@@ -5,7 +5,7 @@ from: dsh-v0.1.5-rc.2
 to: dsh-v0.1.7-rc.1
 status: draft
 coverage: curated
-cardCount: 34
+cardCount: 35
 idPrefix: DSH-0.1.7-J1
 verifiedAt: 2026-09-23
 ---
@@ -71,6 +71,7 @@ verifiedAt: 2026-09-23
 - DSH-0.1.7-J1-32 · breaking: `ModelDirectory.select` returns a `RemoteResult`
 - DSH-0.1.7-J1-33 · breaking: session-row actions become slot lists and `WorkspaceBrowserInjected` changes
 - DSH-0.1.7-J1-34 · capability: two new settings-page seats — `settings.launcher` and `settings.models.sign-in`
+- DSH-0.1.7-J1-35 · behavior: making a released plugin version take effect is three independent cache layers (registry reference, boot cache, SPA session)
 
 ---
 
@@ -378,7 +379,9 @@ verifiedAt: 2026-09-23
 - **Migration recipe**: keep `"patch": "./cordis.patch.yml"` (still valid) or use an ordered list
   `"patch": ["a.yml", "b.yml"]`; list every patch file and include them in `files`/`exports`.
   Replace `dsh.profile.patchReload` with the profile composition / HMR configuration. The Web App
-  bundle now declares five patch files plus `presets/*.patch.yml`.
+  bundle now declares five patch files plus `presets/*.patch.yml`. The metadata fields named above
+  (`description`, `icon`) also feed the Plugin Manager display, overlaid by `locale/<lang>.json`
+  title/description — reader contract in DSH-0.1.7-A1-09.
 - **Verification**: `bundlePatchPaths(dir, manifest.dsh.bundle)` loads every declared patch; select
   the bundle and confirm each preset row mounts.
 - **Source**: [rc.1 `packages/util/package-manifest/src/types.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/util/package-manifest/src/types.ts) · [rc.1 `packages/bundle/web-app/package.json`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/bundle/web-app/package.json) · [rc.1 `packages/boot/app-boot/src/profile.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/boot/app-boot/src/profile.ts)
@@ -664,22 +667,58 @@ verifiedAt: 2026-09-23
 
 - **Type**: capability
 - **Applies to**: plugins wanting a configuration page, an official-plugin card, or detail-page
-  contributions; consumers of `@deepseek-ai/dsh-api-remotes/client`.
+  contributions; consumers of `@deepseek-ai/dsh-api-remotes/client`; and every plugin still
+  registering the retired `settings.plugin.item` slot.
 - **Touchpoints**: #5 for the slots; #3 for the Remote.
-- **Action level**: optional
-- **Symptoms**: n/a (new). A plugin still registering the retired `settings.plugin.item` slot silently
-  shows nothing. `ManagementError['code']` gains `'incompatible-version'` with an
-  `incompatible?: IncompatiblePlugin[]` payload, and `PackageResult` gains `timedOut?`/`incompatible?`,
-  so an exhaustive `switch` over the old union changes.
+- **Action level**: required-if-hit
+- **Symptoms**: adoption of the new surface is optional, but two audiences are hit. (1) A plugin
+  still registering the retired `settings.plugin.item` slot (last declared by `ui-settings-plugins`
+  in `dsh-v0.1.6-alpha.1`) silently shows nothing — no declaring package exists anymore and an
+  unmatched registration stays inert. (2) A `plugins.row.config` key that is off by one character
+  never grows the row's configure control: the key is matched as the exact string
+  `<package name>#<row id>` with the row id taken verbatim from the bundle patch insert row's `id`
+  (first-hand fleet evidence, `dsh-interpreters`: registered `…#interpreters` against patch row id
+  `dsh-interpreters`, control silently never appeared). Also `ManagementError['code']` gains
+  `'incompatible-version'` with an `incompatible?: IncompatiblePlugin[]` payload, and
+  `PackageResult` gains `timedOut?`/`incompatible?`, so an exhaustive `switch` over the old union
+  changes.
 - **Migration recipe**: bundle form — register `plugins.bundle.config` keyed by package name (only
-  `view: 'page'` renders); declared row — `plugins.row.config` keyed `<package>#<row id>`; official
-  page — `plugins.item`; detail contributions — `plugins.detail.actions`/`.badge`/`.section`. Remote
-  namespace `pluginManager` methods: `listBundles`, `listPlugins`, `inspect`, `installBundle`,
-  `waitForInstall`, `cancelInstall`, `setBundleEnabled`, `setPluginEnabled`, `removeBundle`,
-  `registries`. `PluginManagerFace` gains a required `useGithubMirror`.
-- **Verification**: the form/card appears only while the owning row is enabled;
+  `view: 'page'` renders); declared row — `plugins.row.config` keyed `<package name>#<row id>`, the
+  row id copied verbatim from the patch's insert-row `id` (the Host passes `row.id` through
+  untouched and the page compares the exact string — never derive it from the module name or a
+  shortened package suffix); official page — `plugins.item` (occupied by the official settings
+  pages — a third-party bundle MUST NOT register it: the slot has no registration gate, so a
+  third-party card renders inside the Official group and reads as an official plugin; first-hand
+  fleet evidence 2026-09-25: `ds-harness-remote` v0.4.x registers `plugins.item` beside its correct
+  `plugins.bundle.config` and its card lands in the Official group — see DSH-0.1.7-A1-12); detail contributions — `plugins.detail.actions`/`.badge`/`.section`. Owner props are
+  `{ view: 'summary' | 'page', form?: { state, mutate } }`, and `form` is `undefined` whenever
+  settings `describe()` does not serve the entry (a stopped row), so render a fallback; wrap the
+  registration in `ctx.configForms.whileServed([entry id], ...)` to withdraw the contribution while
+  the owning row is not served — but only when the entry declares its own volatile Config fields:
+  `describe()` drops entries with no volatile form, so a registry-manager card that manages other
+  rows' data (no volatile fields of its own) is permanently withdrawn under this gate and must
+  register with a bare `ctx.slots.inject` instead (first-hand fleet evidence 2026-09-25,
+  `dsh-mcp-manager`; full rule in DSH-0.1.7-A1-12). A card moved off the shared tab must also drop
+  its card-level disclosure — the row's detail page draws its own title/breadcrumb and the card is
+  the page's only content, so a carried-over fold (default collapsed) renders the page near-blank;
+  fold single list entries inside the card, never the whole card (discriminator and four-plugin
+  fleet evidence in DSH-0.1.7-A1-12). Types come from the type-only peer
+  `@deepseek-ai/dsh-client-ui-plugin-manager` (module-augmentation merge, no runtime import).
+  Remote namespace `pluginManager` methods: `listBundles`, `listPlugins`, `inspect`,
+  `installBundle`, `waitForInstall`, `cancelInstall`, `setBundleEnabled`, `setPluginEnabled`,
+  `removeBundle`, `registries`. `PluginManagerFace` gains a required `useGithubMirror`. The page's
+  package/row titles and descriptions render through `resolveText` from boot-read
+  `locale/<lang>.json` meta (`packageText`/`rowText` in `presentation.ts`; a meta description
+  outranks the `plugins.row.config` summary fallback) — full reader contract (en.json anchor,
+  exports glob, fallback chain, icon limits) in DSH-0.1.7-A1-09.
+- **Verification**: the form/card appears only while the owning row is enabled; every
+  `plugins.row.config` key string-equals `<npm package name>#<patch row id>`;
   `packages/client/ui-plugin-manager/tests/*`.
-- **Source**: [rc.1 `packages/client/ui-plugin-manager/src/client/slot-contract.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-plugin-manager/src/client/slot-contract.ts) · [rc.1 `packages/api/remotes/src/client/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/api/remotes/src/client/index.ts) · [rc.1 `packages/boot/plugin-manager/src/types.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/boot/plugin-manager/src/types.ts)
+- **Source**: [rc.1 `packages/client/ui-plugin-manager/src/client/slot-contract.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-plugin-manager/src/client/slot-contract.ts) · [rc.1 `packages/client/ui-plugin-manager/src/client/config-ledger.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-plugin-manager/src/client/config-ledger.ts) · [rc.1 `packages/api/remotes/src/client/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/api/remotes/src/client/index.ts) · [rc.1 `packages/boot/plugin-manager/src/types.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/boot/plugin-manager/src/types.ts)
+- **See also**: DSH-0.1.7-A1-12 in the per-edge file [v0.1.7-alpha.1.md](v0.1.7-alpha.1.md) (the
+  `settings.plugin.item` retirement boundary, the full key-rule/gating/form-channel recipe — now
+  with the shared-card chrome removal duty, the key derivation + contract-test guard, and the
+  whileServed exception for entries without volatile Config — and the first-hand fleet evidence).
 
 ### DSH-0.1.7-J1-32 · `ModelDirectory.select` returns a `RemoteResult`
 
@@ -738,3 +777,18 @@ verifiedAt: 2026-09-23
   launcher seat; in a driven browser, register a stub into each seat and assert it renders.
 - **Source**: [rc.1 `packages/client/ui-settings/src/client/contract/slots.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-settings/src/client/contract/slots.ts) · [rc.1 `packages/client/ui-settings-models/src/client/slot-contract.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/ui-settings-models/src/client/slot-contract.ts) · [introducing commit 048297321a](https://github.com/deepseek-ai/deepseek-harness/commit/048297321ad1364557308d360b8e535978ec8876)
 - **See also**: DSH-0.1.7-A1-11 in the per-edge file [v0.1.7-alpha.1.md](v0.1.7-alpha.1.md).
+
+### DSH-0.1.7-J1-35 · making a released plugin version take effect is three independent cache layers (registry reference, boot cache, SPA session)
+
+- **Type**: behavior
+- **Applies to**: fleet deployment and verification workflows — every profile that installs plugins through `github:`/registry specifiers and re-serves them in the WebUI after a release wave; also the update→restart→refresh choreography of the upgrade run itself.
+- **Touchpoints**: none (deployment and host serving behavior)
+- **Action level**: informational
+- **Symptoms**: a released plugin version does not show up, and three cache layers can each serve stale content while the others are already fresh — they are independent, so skipping any one layer reproduces the "still the old version" symptom even when the disk looks right:
+  1. **`github:`/registry reference layer.** The profile's `node_modules` copy is resolved once by the package manager; restarting the host process does **not** re-fetch a `github:`/registry dependency. Until `dsh plugin --profile <p> update <pkg>` lands the new bits on disk, every later layer faithfully re-serves the old ones (first-hand fleet evidence 2026-09-25, `ds-harness-remote` on the `web` profile: a duplicate-card symptom survived a host restart unchanged and disappeared only after `update`).
+  2. **Boot cache layer.** Client package metadata (including the negative "not a client package" verdict) "is cached per Loader specifier and owning-tree base URL until restart", and "bundle content changes reach the graph only through `ClientModuleRegistry.rebuilt`" (modules service header). Disk updated + process still running = the host keeps serving the old bundle bytes, and a browser hard refresh receives those same old bytes.
+  3. **SPA session layer.** Plugins-page list data is fetched into the SPA session; a host-side surface that re-reads files per call — e.g. the `pluginManager.listBundles` path calling `readPluginMeta` on each `package.json`/`locale/<lang>.json` — needs only a **hard refresh** to re-fetch, with no host restart (first-hand fleet evidence 2026-09-25, `dsh-plugin-codegraph`: the zh locale title 「代码图谱」 appeared after a hard refresh alone, process untouched).
+- **Migration recipe**: boundary note first — the boot-cache half of this behavior landed on the preceding edge `dsh-v0.1.6-alpha.1 → dsh-v0.1.6-alpha.2` (commit [42286726c8](https://github.com/deepseek-ai/deepseek-harness/commit/42286726c8f852b45e09e692be44f01f3973acc5) `perf(web): defer client combo assembly`, first tagged `dsh-v0.1.6-alpha.2`); that per-edge file (`v0.1.6-alpha.2.md`, corridor order 15) is not written yet, so this jump card carries the net-window view, and DSH-0.1.7-A2-04 records the same behavior as read off the alpha.2 release notes. The three-step law, in order: (1) `dsh plugin --profile <p> update <pkg>` — lands the new bytes for `github:`/registry references (a restart alone never does); (2) restart the host process — retires the boot cache so the new bundle bytes are composed and served; (3) hard-refresh the browser (`Ctrl+Shift+R`) — refetches SPA-session data. Diagnose stale-version symptoms per layer instead of wholesale: a refresh fixes only layer 3; a restart fixes 2+3; only `update` fixes all three. A `link:` reference skips layer 1 (the source tree is the installed tree) — rebuild `lib/` and continue at the restart.
+- **Verification**: before declaring "the disk already has the new version", verify the deployed copy through the path the package's `exports` actually maps — e.g. `packages/plugin/dist/client.github.js` when `exports` maps the client face into `dist/` — never a guessed package-root path: `rg` against a nonexistent file prints nothing, and zero output ≠ zero match (first-hand fleet evidence 2026-09-25, `ds-harness-remote`: the package root has no `client.github.js`, the served artifact lives under `dist/`, and a package-root grep was misread as "disk already updated"). Then assert the new content end-to-end: the served bundle bytes match the verified disk copy, and the new surface marker renders after all three steps.
+- **Source**: [rc.1 `packages/client/modules/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/client/modules/src/index.ts) (service header: package metadata "is cached per Loader specifier and owning-tree base URL until restart"; "Bundle content changes reach the graph only through `ClientModuleRegistry.rebuilt`") · [rc.1 `packages/boot/plugin-manager/src/index.ts`](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.1.7-rc.1/packages/boot/plugin-manager/src/index.ts) (`readPluginMeta` called on the list path) · [deferred-combo commit 42286726c8](https://github.com/deepseek-ai/deepseek-harness/commit/42286726c8f852b45e09e692be44f01f3973acc5)
+- **See also**: DSH-0.1.7-A2-04 in the per-edge file [v0.1.7-alpha.2.md](v0.1.7-alpha.2.md) (the boot-cache behavior as recorded from the alpha.2 release notes, with the install-tree hot-edit variant and the auto-reconnect caveat).
