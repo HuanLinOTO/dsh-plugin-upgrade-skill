@@ -26,6 +26,11 @@ verifiedAt: 2026-10-16
 > checkout of both tags, plus first-hand fleet evidence from a 28-plugin sweep on Windows
 > (Field notes inline). It is **not** a per-edge ledger of the intermediate alphas.
 >
+> Per-edge cards for the same window are [v0.2.1-alpha.1.md](v0.2.1-alpha.1.md) …
+> [v0.2.1-alpha.5.md](v0.2.1-alpha.5.md) (orders 21–25). Overlapping entries: J1-01 ↔ DSH-0.2.1-A4-01,
+> J1-02 ↔ DSH-0.2.1-A1-01, J1-03 ↔ DSH-0.2.1-A2-11, J1-04 ↔ DSH-0.2.1-A2-09, J1-05 ↔ DSH-0.2.1-A2-02,
+> J1-06 ↔ DSH-0.2.1-A2-02/A2-03/A2-04, J1-07 ↔ DSH-0.2.1-A2-01.
+>
 > Claim: [oh-my-dsh/dsh-plugin-upgrade-skill#284](https://github.com/oh-my-dsh/dsh-plugin-upgrade-skill/issues/284).
 
 ## Contents
